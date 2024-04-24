@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "tg_bot"
+version = "0.1.0"
+description = "Telegram bot with referral system"
+authors = ["Dmytro Kovalenko <danrapongha@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aiogram = "^3.4.1"
+captcha = "^0.5.0"
+python-dotenv = "^1.0.1"
+black = "^24.4.0"
+asyncpg = "^0.29.0"
+environs = "^11.0.0"
+redis = "^5.0.3"
+aioredis = "^2.0.1"
+aiogram-dialog = {git = "https://github.com/Tishka17/aiogram_dialog", rev = "develop"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
