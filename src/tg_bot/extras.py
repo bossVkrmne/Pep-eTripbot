@@ -54,11 +54,11 @@ class CustomMessageManager(MessageManager):
         return await super().get_media_source(media, bot)
 
 
-async def check_subscriptions(channels: list, id: int, bot: Bot):
+async def check_subscriptions(channels: list, tg_id: int, bot: Bot):
     subscribed_channels = []
     for channel in channels:
         member = await bot.get_chat_member(
-            "@" + channel.split("/")[-1], id
+            "@" + channel.split("/")[-1], tg_id
         )
         if member.status != "left":
             subscribed_channels.append(channel)

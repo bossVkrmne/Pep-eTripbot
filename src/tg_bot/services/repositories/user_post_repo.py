@@ -1,42 +1,47 @@
-
-
 class UserPostRepo:
     def __init__(self, db):
         self.db = db
 
-    async def add_user(self, tg_id: int, username: str, ref_code: str) -> None:
-        await self.db.execute(
+    async def add_user(
+        self, tg_id: int, username: str, points: int, ref_code: str
+    ) -> int:
+        user_id = await self.db.fetchval(
             """
             INSERT INTO users
-            (telegram_id, username, ref_code, points, join_date)
-            VALUES ($1, $2, $3, 10, NOW())
-            ON CONFLICT (telegram_id) DO NOTHING
+            (telegram_id, username, points, ref_code, join_date)
+            VALUES ($1, $2, $3, $4, NOW())
+            RETURNING user_id
             """,
-            tg_id, username, ref_code,
+            tg_id, username, points, ref_code,
         )
+        return user_id
 
-    async def add_referral(
+    async def add_user_referral(
             self,
             tg_id: int,
             username: str,
+            points: int,
             ref_code: str,
-            refr_id: int,
-            refr_points: int = 50,
+            referrer_id: int,
+            referrer_points: int
     ) -> None:
-        await self.db.execute(
-            """
-            WITH ins AS (
-                INSERT INTO users
-                (telegram_id, username, ref_code, points, join_date)
-                VALUES ($1, $2, $3, 10, NOW())
-                RETURNING user_id
+        async with self.db.transaction():
+            user_id = await self.add_user(tg_id, username, points, ref_code)
+            await self.db.execute(
+                """
+                INSERT INTO referrals (referral_id, referrer_id)
+                VALUES ($1, $2);
+                """,
+                user_id, referrer_id
             )
-            INSERT INTO referrals (user_id, referrer_id)
-            VALUES ((SELECT user_id FROM ins), $4)
-            """,
-            tg_id, username, ref_code, refr_id,
-        )
-        await self.db.execute(
-            "UPDATE users SET points = points + $1 WHERE user_id = $2",
-            refr_points, refr_id,
-        )
+            await self.db.execute(
+                """
+                UPDATE users
+                SET points = points + $1
+                WHERE user_id = $2
+                """,
+                referrer_points, referrer_id,
+            )
+
+
+

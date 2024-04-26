@@ -41,19 +41,30 @@ async def try_check_in(
     button: Button,
     dialog_manager: DialogManager,
 ):
-    """When user checks in, they get points and can check in again in 24h"""
+    """
+    When user checks in, they get points and their referrer too.
+    User can check in again in 24h
+    """
     repo = dialog_manager.middleware_data["repo"]
     user_id = query.from_user.id
     last_check_in = await repo.get_last_check_in(user_id)
-    now_utc = datetime.now(UTC)
     next_check_in = last_check_in + timedelta(days=1)
 
-    if now_utc >= next_check_in:
+    if datetime.now(UTC) >= last_check_in + timedelta(days=1):
         channels = await repo.fetch_channels()
         subscribed = await check_subscriptions(channels, user_id, query.bot)
         points = len(subscribed)
+        if not points:
+            await query.message.answer("Вы не подписаны ни на один канал. Подпишитесь, чтобы получить награду!")
+            return
+        await repo.update_check_in(user_id)
+        await repo.update_points(user_id, points)
 
-        await repo.update_check_in(user_id, points)
+        referrer_id = await repo.get_user_referrer(user_id)
+        if referrer_id and points:
+            referrer_points = points * 0.1
+            await repo.update_points(referrer_id, referrer_points)
+
         message = (
             lex.CHECK_IN_REWARD.format(points)
             if points
@@ -64,7 +75,6 @@ async def try_check_in(
             next_check_in.strftime("%d.%m в %H:%M")
         )
     await query.message.answer(message)
-    await query.answer()
 
 
 @router.message(Command(commands="info"))
