@@ -2,7 +2,6 @@ import asyncio
 import logging
 
 import asyncpg
-from aiogram.filters import Command
 from asyncpg import Pool
 
 from aiogram import Bot, Dispatcher
@@ -10,7 +9,7 @@ from aiogram.fsm.storage.redis import RedisStorage, Redis, DefaultKeyBuilder
 
 from tg_bot.config import load_config
 from tg_bot.db import prepare_db
-from tg_bot.extras import CustomMessageManager, set_main_menu
+from tg_bot.extras import set_main_menu
 from tg_bot.dialogs.core import dialog as core
 from tg_bot.dialogs.auth import dialog as auth
 from tg_bot.dialogs.admin import dialog as admin
@@ -64,7 +63,7 @@ async def main() -> None:
     dp.include_routers(
         core_router, admin_router, auth.dialog, core.dialog, admin.dialog
     )
-    setup_dialogs(dp, message_manager=CustomMessageManager())
+    setup_dialogs(dp)
 
     await bot.delete_webhook(drop_pending_updates=True)
     try:
