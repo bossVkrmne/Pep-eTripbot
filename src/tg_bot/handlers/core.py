@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta
-from datetime import UTC
+from datetime import datetime, UTC, timedelta
 
 from aiogram import Router
 from aiogram.filters import Command, CommandObject, CommandStart
@@ -47,15 +46,17 @@ async def try_check_in(
     """
     repo = dialog_manager.middleware_data["repo"]
     user_id = query.from_user.id
-    last_check_in = await repo.get_last_check_in(user_id)
-    next_check_in = last_check_in + timedelta(days=1)
+    last_check = await repo.get_last_check_in(user_id)
+    next_check = (
+        last_check + timedelta(days=1) if last_check else datetime.now(UTC)
+    )
 
-    if datetime.now(UTC) >= last_check_in + timedelta(days=1):
+    if datetime.now(UTC) >= next_check:
         channels = await repo.fetch_channels()
         subscribed = await check_subscriptions(channels, user_id, query.bot)
         points = len(subscribed)
         if not points:
-            await query.message.answer("Вы не подписаны ни на один канал. Подпишитесь, чтобы получить награду!")
+            await query.message.answer(lex.CHECK_IN_UNSUB)
             return
         await repo.update_check_in(user_id)
         await repo.update_points(user_id, points)
@@ -71,9 +72,7 @@ async def try_check_in(
             else lex.CHECK_IN_NOTHING
         )
     else:
-        message = lex.CHECK_IN_OUT.format(
-            next_check_in.strftime("%d.%m в %H:%M")
-        )
+        message = lex.CHECK_IN_OUT.format(next_check.strftime("%d.%m в %H:%M"))
     await query.message.answer(message)
 
 

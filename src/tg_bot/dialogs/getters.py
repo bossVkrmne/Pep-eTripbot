@@ -20,15 +20,27 @@ async def user_info_getter(
 
 
 async def captcha_getter(dialog_manager: DialogManager, **kwargs):
-    captcha_code = "".join(
-        random.choice(string.ascii_letters + string.digits) for _ in range(6)
-    )
-    dialog_manager.dialog_data["captcha_code"] = captcha_code
-    return {
-        "captcha_image": MediaAttachment(
-            type=ContentType.PHOTO, url=f"bot://{captcha_code}"
-        ),
-    }
+    captcha_colors = [
+        ("🟥", "0"),
+        ("🟧", "1"),
+        ("🟨", "2"),
+        ("🟩", "3"),
+        ("🟦", "4"),
+        ("🟪", "5"),
+        ("🟫", "6"),
+        ("⬛️", "7"),
+        ("⬜️", "8")
+    ]
+    captcha_key = random.choice(captcha_colors)
+    mixed_colors = random.sample(captcha_colors, len(captcha_colors))
+    dialog_manager.dialog_data["captcha_key"] = captcha_key[1]
+
+    if dialog_manager.dialog_data.get("captcha_failed", False):
+        msg = lex.CAPTCHA_FAILED.format(captcha_key[0])
+    else:
+        msg = lex.CAPTCHA_START.format(captcha_key[0])
+    return {"colors": mixed_colors, "text": msg}
+
 
 
 async def leaderboard_getter(

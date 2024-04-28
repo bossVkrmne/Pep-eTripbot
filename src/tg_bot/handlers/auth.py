@@ -1,7 +1,7 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from typing import Any
+
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, StartMode, ShowMode
-from aiogram_dialog.widgets.input import MessageInput
 from aiogram.utils.payload import encode_payload
 from aiogram_dialog.widgets.kbd import Button
 
@@ -12,17 +12,16 @@ from tg_bot.states.states import UserRegistration, MainMenu
 
 
 async def process_captcha(
-    message: Message,
-    widget: MessageInput,
+    query: CallbackQuery,
+    widget: Any,
     dialog_manager: DialogManager,
+    item_id: str,
 ):
-    if (
-        message.text.upper()
-        == dialog_manager.dialog_data["captcha_code"].upper()
-    ):
+    print(type(item_id), type(dialog_manager.dialog_data["captcha_key"]))
+    if item_id == dialog_manager.dialog_data["captcha_key"]:
         await dialog_manager.switch_to(UserRegistration.check_subscription)
     else:
-        await message.answer(lex.CAPTCHA_FAILED)
+        dialog_manager.dialog_data["captcha_failed"] = True
 
 
 async def check_required_subscriptions(

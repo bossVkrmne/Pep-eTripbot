@@ -4,7 +4,13 @@ USER_INFO = (
     "Приглашенные друзья: {referral_count}"
 )
 
-REQUIRE_SUBSCRIBE_MESSAGE = "Подпишись на наши каналы, чтобы завершить регистрацию:\n\n{}"
+REQUIRE_SUBSCRIBE_MESSAGE = (
+    "Подпишись на наши каналы, чтобы завершить регистрацию:\n\n{}"
+)
+
+CAPTCHA_START = "Пройдите капчу для верификации\n\nВыберите цвет {}"
+
+CAPTCHA_FAILED = "Не тот цвет! Попробуй еще раз {}"
 
 REF_LINK = "Ваша реферальная ссылка:\nhttps://t.me/WhereMoney_refbot?start={}"
 
@@ -20,4 +26,3 @@ IF_OPTIONAL_CHANNELS = (
 IF_NOT_OPTINAL_CHANNELS = "Актуальных квестов пока что нету :("
 
 NO_REFERRERS = "Пока что нет рефереров."
-
