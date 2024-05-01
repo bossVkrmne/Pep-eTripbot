@@ -21,9 +21,10 @@ class UserRegistration(StatesGroup):
     complete_registration = State()
 
 
-class AdminPanel(StatesGroup):
+class Admin(StatesGroup):
     menu = State()
     add_channel = State()
     remove_channel = State()
     start_newsletter = State()
     confirm_newsletter = State()
+    add_user_points = State()

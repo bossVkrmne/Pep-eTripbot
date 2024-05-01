@@ -3,11 +3,12 @@ import operator
 from aiogram import F
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.kbd import Button, Select, Group
+from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.text import Format, Const
 
 from tg_bot.dialogs.getters import captcha_getter, required_channels_getter
 from tg_bot.handlers.auth import process_captcha, set_locale_registration
-from tg_bot.handlers.common import set_locale
+from tg_bot.handlers.common import handle_extra_messages, set_locale
 from tg_bot.states.states import UserRegistration
 from tg_bot.handlers.auth import check_required_subscriptions
 
@@ -18,6 +19,7 @@ select_language_window = Window(
     Const("Choose language:"),
     Button(Const("🇷🇺 Русский"), id="ru", on_click=set_locale_registration),
     Button(Const("🇺🇸 English"), id="en", on_click=set_locale_registration),
+    MessageInput(func=handle_extra_messages),
     state=UserRegistration.select_language,
 )
 
@@ -34,6 +36,7 @@ captcha_window = Window(
         ),
         width=3,
     ),
+    MessageInput(func=handle_extra_messages),
     state=UserRegistration.check_captcha,
     getter=captcha_getter,
 )
@@ -46,6 +49,7 @@ subscribe_window = Window(
         id="check_subscription",
         on_click=check_required_subscriptions,
     ),
+    MessageInput(func=handle_extra_messages),
     state=UserRegistration.check_subscription,
     getter=required_channels_getter,
 )

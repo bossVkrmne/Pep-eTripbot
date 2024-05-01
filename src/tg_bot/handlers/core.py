@@ -1,4 +1,5 @@
 from datetime import datetime, UTC, timedelta
+from venv import logger
 
 from aiogram import Router
 from aiogram.filters import CommandObject, CommandStart
@@ -41,35 +42,40 @@ async def try_check_in(
     button: Button,
     dialog_manager: DialogManager,
 ):
-    """
-    When user checks in, they get points and their referrer too.
-    User can check in again in 24h
-    """
     i18n = dialog_manager.middleware_data["i18n_context"]
     repo: Repo = dialog_manager.middleware_data["repo"]
     user_id = query.from_user.id
+
     last_check = await repo.get_last_check_in(user_id)
     next_check = (
-        last_check + timedelta(days=1) if last_check else datetime.now(UTC)
+        last_check + timedelta(hours=config.CHECKIN_GAP_TIME)
+        if last_check
+        else datetime.now(UTC)
     )
 
     if datetime.now(UTC) >= next_check:
-        channels = await repo.fetch_channels()
-        subscribed = await check_subscriptions(channels, user_id, query.bot)
-        if not subscribed:
-            await query.message.answer(i18n.user.check_in.unsub())
-            return
-        points = len(subscribed) * config.CHECKIN_REWARD
-        await repo.update_check_in(user_id)
-        await repo.update_points(user_id, points)
-
-        referrer_id = await repo.get_user_referrer(user_id)
-        if referrer_id and points:
-            await repo.update_points(
-                referrer_id, points * config.REFERRER_PART_REWARD
+        try:
+            channels = await repo.fetch_channels()
+            subscribed = await check_subscriptions(
+                channels, user_id, query.bot
             )
+            if not subscribed:
+                await query.message.answer(i18n.user.check_in.unsub())
+                return
+            points = len(subscribed) * config.CHECKIN_REWARD
+            await repo.update_check_in(user_id)
+            await repo.update_points(user_id, points)
 
-        message = i18n.user.check_in.reward(points=points)
+            referrer_id = await repo.get_user_referrer(user_id)
+            if referrer_id and points:
+                await repo.update_points(
+                    referrer_id, points * config.REFERRER_PART_REWARD
+                )
+
+            message = i18n.user.check_in.reward(points=points)
+        except Exception as e:
+            logger.error(f"try_check_in error: {e}")
+            await query.message.answer(i18n.common.error())
     else:
         message = i18n.user.check_in.unavailable(
             date=next_check.strftime("%H:%M %d.%m")

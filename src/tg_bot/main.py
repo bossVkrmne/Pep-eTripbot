@@ -8,6 +8,7 @@ from asyncpg import Pool
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis, DefaultKeyBuilder
+from aiogram.exceptions import TelegramAPIError
 
 from tg_bot.config import load_config
 from tg_bot.db import prepare_db
@@ -74,11 +75,21 @@ async def main() -> None:
     i18n_middleware.setup(dp)
 
     dp.startup.register(set_main_menu)
+    # dp.include_routers(
+    #     core_router,
+    #     admin_router,
+    #     common_router,
+    #     auth.dialog,
+    #     core.dialog,
+    #     admin.dialog,
+    #     common.dialog,
+    # )
     dp.include_routers(
         core_router,
+        auth.dialog,
         admin_router,
         common_router,
-        auth.dialog,
+        # auth.dialog,
         core.dialog,
         admin.dialog,
         common.dialog,
@@ -96,7 +107,7 @@ async def main() -> None:
 def cli():
     try:
         asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
+    except (KeyboardInterrupt, SystemExit, TelegramAPIError):
         logger.error("Bot stopped!")
 
 

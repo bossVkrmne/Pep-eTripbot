@@ -79,7 +79,7 @@ async def required_channels_getter(
 
 async def wallet_getter(repo: Repo, event_from_user: User, **kwargs):
     wallet = await repo.get_wallet(event_from_user.id)
-    return {"wallet": wallet if wallet else "None"}
+    return {"wallet": wallet if wallet else None}
 
 
 async def bot_info_getter(**kwargs):

@@ -1,3 +1,4 @@
+from typing import Any
 from venv import logger
 from aiogram import F, Router
 from aiogram.types import Message
@@ -14,20 +15,12 @@ from tg_bot.states.states import MainMenu, UserRegistration, UserState
 router = Router()
 
 
-@router.message(
-    StateFilter(
-        UserRegistration.select_language,
-        UserRegistration.check_captcha,
-        UserRegistration.check_subscription,
-        UserRegistration.complete_registration,
-    ),
-)
-async def proccess_extra_messages(
-    message: Message, state: FSMContext, dialog_manager: DialogManager
+async def handle_extra_messages(
+    message: Message, widget: Any, dialog_manager: DialogManager
 ):
     i18n: I18nContext = dialog_manager.middleware_data["i18n_context"]
     await message.answer(i18n.auth.extra_messages())
-    await dialog_manager.show()
+    return
 
 
 @router.message(Command(commands="lang"))
@@ -38,12 +31,15 @@ async def change_language(message: Message, dialog_manager: DialogManager):
 async def set_locale(
     query: CallbackQuery, button: Button, dialog_manager: DialogManager
 ):
-    repo = dialog_manager.middleware_data["repo"]
     i18n: I18nContext = dialog_manager.middleware_data["i18n_context"]
-
-    locale = button.widget_id
-    await i18n.set_locale(locale, temp=False)
-    await query.message.answer(i18n.common.locale_changed())
+    try:
+        locale = button.widget_id
+        await i18n.set_locale(locale, temp=False)
+        await query.message.answer(i18n.common.locale_changed())
+    except Exception as e:
+        logger.error(f"set_locale error: {e}")
+        await query.message.answer(i18n.common.error())
+    await dialog_manager.done()
 
 
 @router.message(Command(commands="wallet"))
@@ -59,8 +55,12 @@ async def set_wallet(
     i18n = dialog_manager.middleware_data["i18n_context"]
     repo = dialog_manager.middleware_data["repo"]
     wallet_address = message.text
-    await repo.set_wallet(message.from_user.id, wallet_address)
-    await message.answer(i18n.common.wallet_added())
+    try:
+        await repo.set_wallet(message.from_user.id, wallet_address)
+        await message.answer(i18n.common.wallet_added())
+    except Exception as e:
+        logger.error(f"set_wallet error: {e}")
+        await message.answer(i18n.common.error())
     await dialog_manager.done()
 
 

@@ -38,7 +38,14 @@ user-quests-info =
     { $channels }
 
 user-quests-no_quests = There are not quests yet 😬
-user-quests-already_subscribed = You are already subscribed or have subscribed to these channels ⚠️
+user-quests-already_subscribed = 
+    You have already received awards for all these channels ⚠️
+    Stay in touch and wait for new quests 😎
+
+user-quests-zero_subsriptions = 
+    ⚠️ You have already received rewards for your current subscriptions.
+    But there are still channels to which you are not subscribed.
+    Take a look closer, subscribe and get rewards! ✅💰
 
 user-quests-subscription_reward = 
     { $points ->
@@ -101,6 +108,10 @@ admin-channel_already_added = The channel already added to the system ⚠️
 admin-channel_removed = The channel successfully removed ✅
 admin-channel_already_removed = The channel already removed from the system ⚠️ 
 admin-newsletter_sent = The message was sent successfully ✅
+admin-enter_user_points = Enter <b>telegram_id</b>=<b>points</b>:
+admin-points_added = Points successfully added ✅
+admin-add_points_error = An error occurred ⚠️
+    Check the data is correct and try again
 
 admin-add_channel = Enter the channel link to add ➕
 admin-remove_channel = Enter the channel link to remove ➖
@@ -124,8 +135,8 @@ common-wallet_info =
 
     Well suited wallets: <u>Tonkeeper, Tonhub, Ton Space</u> 👛
 
-common-add_new_wallet = Enter your wallet address 👛
-common-replace_wallet = Enter a new wallet address, if you want to overwrite the current one 👛
+common-add_new_wallet = Enter your wallet address to link it to your account 👛👇🏻
+common-replace_wallet = Enter a new wallet address, if you want to overwrite the current one 👛👇🏻
 
 common-show_wallet = 
     Your wallet address:
@@ -185,6 +196,7 @@ button-admin-cancel_newsletter = No 👎🏻
 button-admin-required_channel = Required channel ✅
 button-admin-optional_channel = Optional channel ✅
 button-admin-dump_table = Download table 📑
+button-admin-add_user_points = Add points to user 💰
 
 button-user-ref_link = Invite frens 👥
 button-user-leadearboard = Leaderboard 🏆
@@ -194,3 +206,6 @@ button-user-quests = Current quest 👾
 button-common-check_subs = Check subscriptions ✅
 button-common-back_to_menu = Back to menu ⬅️
 button-common-start_menu = Start the main menu 💻
+
+error-try_again = An error occurred ⚠️
+    Try again please

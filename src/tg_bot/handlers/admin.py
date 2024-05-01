@@ -1,6 +1,7 @@
 import csv
 from io import StringIO, BytesIO
 import re
+from venv import logger
 
 from aiogram import Router
 from aiogram.filters import Command
@@ -17,7 +18,8 @@ from asyncpg import UniqueViolationError
 
 from tg_bot import config
 from tg_bot.models.role import UserRole
-from tg_bot.states.states import AdminPanel
+from tg_bot.services.repository import Repo
+from tg_bot.states.states import Admin
 
 router = Router()
 
@@ -27,7 +29,9 @@ async def open_admin_panel(
     message: Message, dialog_manager: DialogManager, role: UserRole
 ):
     if role == UserRole.ADMIN:
-        await dialog_manager.start(AdminPanel.menu, mode=StartMode.RESET_STACK)
+        await dialog_manager.start(Admin.menu, mode=StartMode.RESET_STACK)
+    else:
+        await dialog_manager.show()
 
 
 async def add_channel(
@@ -53,7 +57,7 @@ async def add_channel(
                 await message.answer(i18n.admin.channel_added())
             except UniqueViolationError:
                 await message.answer(i18n.admin.channel_already_added())
-    await dialog_manager.switch_to(AdminPanel.menu)
+    await dialog_manager.switch_to(Admin.menu)
 
 
 async def remove_channel(
@@ -68,7 +72,7 @@ async def remove_channel(
     except ValueError:
         await message.answer(i18n.admin.channel_already_removed())
 
-    await dialog_manager.switch_to(AdminPanel.menu)
+    await dialog_manager.switch_to(Admin.menu)
 
 
 async def decide_newsletter(
@@ -85,7 +89,25 @@ async def decide_newsletter(
 
         await callback.message.answer(i18n.admin.newsletter_sent())
 
-    await dialog_manager.switch_to(AdminPanel.menu)
+    await dialog_manager.switch_to(Admin.menu)
+
+
+async def add_user_points(
+    message: Message, widget: MessageInput, dialog_manager: DialogManager
+):
+    i18n: I18nContext = dialog_manager.middleware_data["i18n_context"]
+    repo: Repo = dialog_manager.middleware_data["repo"]
+    try:
+        user_id, points = map(int, message.text.split("="))
+        if not await repo.get_by_telegram_id(user_id):
+            await message.answer(i18n.admin.add_points_error())
+            return
+        await repo.update_points(user_id, points)
+        await message.answer(i18n.admin.points_added())
+        await dialog_manager.switch_to(Admin.menu)
+    except Exception as e:
+        logger.error(f"add_user_points error: {e}")
+        await message.answer(i18n.admin.add_points_error())
 
 
 async def dump_table(
@@ -118,4 +140,4 @@ async def dump_table(
 
     document = BufferedInputFile(bytes_output.read(), "users.csv")
     await query.message.answer_document(document=document)
-    await dialog_manager.switch_to(AdminPanel.menu)
+    await dialog_manager.switch_to(Admin.menu)
