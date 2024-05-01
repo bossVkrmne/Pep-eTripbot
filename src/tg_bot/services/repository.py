@@ -7,7 +7,3 @@ from tg_bot.services.repositories.user_update_repo import UserUpdateRepo
 class Repo(UserGetRepo, UserPostRepo, UserUpdateRepo, ChannelRepo):
     def __init__(self, db):
         super().__init__(db)
-
-
-
-

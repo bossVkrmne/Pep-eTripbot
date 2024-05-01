@@ -1,3 +1,5 @@
+from typing import Literal
+
 
 class UserUpdateRepo:
     def __init__(self, db):
@@ -20,5 +22,22 @@ class UserUpdateRepo:
             SET points = points + $1
             WHERE telegram_id = $2
             """,
-            points, tg_id,
+            points,
+            tg_id,
+        )
+
+    async def set_user_locale(
+        self, tg_id: int, locale: Literal["ru", "en"]
+    ) -> None:
+        await self.db.execute(
+            "UPDATE users SET language = $2 WHERE telegram_id = $1",
+            tg_id,
+            locale,
+        )
+
+    async def set_wallet(self, tg_id: int, wallet: str) -> None:
+        await self.db.execute(
+            "UPDATE users SET wallet = $2 WHERE telegram_id = $1",
+            tg_id,
+            wallet,
         )

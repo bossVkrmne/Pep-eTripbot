@@ -12,12 +12,12 @@ from aiogram.types import (
 from aiogram_dialog import DialogManager, StartMode
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button
+from aiogram_i18n import I18nContext
 from asyncpg import UniqueViolationError
 
 from tg_bot import config
 from tg_bot.models.role import UserRole
 from tg_bot.states.states import AdminPanel
-from tg_bot.lexicon import admin as lex
 
 router = Router()
 
@@ -33,56 +33,57 @@ async def open_admin_panel(
 async def add_channel(
     message: Message, widget: MessageInput, dialog_manager: DialogManager
 ):
-    """Admin-panel option that allows to add new channel to the database"""
+    i18n = dialog_manager.middleware_data["i18n_context"]
     pattern = r"^https://t\.me/(?P<username>[a-zA-Z0-9_]{5,32})$"
     match = re.match(pattern, message.text)
     if not match:
-        await message.answer(lex.WRONG_LINK_FORMAT)
+        await message.answer(i18n.admin.wrong_link_format())
     else:
-        # check if bot is admin
         channel = "@" + match.group("username")
         member = await message.bot.get_chat_member(channel, config.BOT_ID)
         if member.status != "administrator":
-            await message.answer(lex.BOT_NOT_ADMIN)
+            await message.answer(i18n.admin.bot_not_admin())
         else:
-            # define the channel is required to subscription
             checkbox = dialog_manager.find("check_required_channel")
             required = checkbox.is_checked()
             try:
                 await dialog_manager.middleware_data["repo"].add_channel(
                     message.text, required
                 )
-                await message.answer(lex.CHANNEL_ADDED.format(message.text))
+                await message.answer(i18n.admin.channel_added())
             except UniqueViolationError:
-                await message.answer(lex.CHANNEL_ALREADY_ADDED)
+                await message.answer(i18n.admin.channel_already_added())
     await dialog_manager.switch_to(AdminPanel.menu)
 
 
 async def remove_channel(
     message: Message, widget: MessageInput, dialog_manager: DialogManager
 ):
+    i18n = dialog_manager.middleware_data["i18n_context"]
     try:
         await dialog_manager.middleware_data["repo"].delete_channel(
             message.text
         )
-        await message.answer(lex.CHANNEL_DELETED.format(message.text))
+        await message.answer(i18n.admin.channel_removed())
     except ValueError:
-        await message.answer(lex.CHANNEL_ALREADY_DELETED)
+        await message.answer(i18n.admin.channel_already_removed())
 
     await dialog_manager.switch_to(AdminPanel.menu)
 
 
-async def decide_broadcast(
-    callback: CallbackQuery, button: Button, dialog_manager: DialogManager
+async def decide_newsletter(
+    callback: CallbackQuery,
+    button: Button,
+    dialog_manager: DialogManager,
 ):
-    """Function that ask the admin for confirmation of the broadcast"""
-    if button.widget_id == "confirm_broadcast":
+    i18n = dialog_manager.middleware_data["i18n_context"]
+    if button.widget_id == "confirm_newsletter":
         users = await dialog_manager.middleware_data["repo"].fetch_users_id()
-        broadcast_message = dialog_manager.dialog_data["broadcast_message"]
+        newsletter_message = dialog_manager.dialog_data["newsletter_message"]
         for user in users:
-            await callback.bot.send_message(user, broadcast_message)
+            await callback.bot.send_message(user, newsletter_message)
 
-        await callback.message.answer(lex.BROADCAST_SUCCESS)
+        await callback.message.answer(i18n.admin.newsletter_sent())
 
     await dialog_manager.switch_to(AdminPanel.menu)
 
@@ -90,12 +91,17 @@ async def decide_broadcast(
 async def dump_table(
     query: CallbackQuery, button: Button, dialog_manager: DialogManager
 ):
-    """Option that allows to download the table with users data"""
     users = await dialog_manager.middleware_data["repo"].fetch_users_data()
     output = StringIO()
     writer = csv.writer(output)
     writer.writerow(
-        ["Телеграм айди", "Имя пользователя", "Поинты", "Количество рефералов"]
+        [
+            "Телеграм айди",
+            "Имя пользователя",
+            "Поинты",
+            "Количество рефералов",
+            "Кошелёк",
+        ]
     )
     for user in users:
         writer.writerow(
@@ -104,13 +110,12 @@ async def dump_table(
                 user["username"],
                 user["points"],
                 user["referrals_count"],
+                user["wallet"],
             ]
         )
     output.seek(0)
     bytes_output = BytesIO(output.read().encode("utf-8"))
 
     document = BufferedInputFile(bytes_output.read(), "users.csv")
-    await query.message.answer_document(
-        document=document, caption=lex.CSV_TABLE
-    )
+    await query.message.answer_document(document=document)
     await dialog_manager.switch_to(AdminPanel.menu)

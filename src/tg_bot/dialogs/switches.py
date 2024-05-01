@@ -14,8 +14,8 @@ async def start_main_menu(
     )
 
 
-async def to_broadcast_decide(
+async def to_newsletter_decide(
     message: Message, widget: MessageInput, dialog_manager: DialogManager
 ):
-    dialog_manager.dialog_data["broadcast_message"] = message.text
-    await dialog_manager.switch_to(AdminPanel.confirm_broadcast)
+    dialog_manager.dialog_data["newsletter_message"] = message.text
+    await dialog_manager.switch_to(AdminPanel.confirm_newsletter)
