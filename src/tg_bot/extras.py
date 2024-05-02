@@ -4,14 +4,18 @@ from aiogram.types import BotCommand
 
 async def set_main_menu(bot: Bot) -> None:
     main_menu_commands = [
-        BotCommand(command="/start", description="Открыть основное меню"),
+        BotCommand(command="/start", description="Open main menu"),
         BotCommand(
             command="/info",
-            description="Ознакомительная информация о боте",
+            description="Information about the bot",
         ),
         BotCommand(
-            command="/support",
-            description="Если вы столкнулись с ошибками/багами - тыкайте сюда",
+            command="/lang",
+            description="Change language",
+        ),
+        BotCommand(
+            command="/wallet",
+            description="Add wallet",
         ),
     ]
 

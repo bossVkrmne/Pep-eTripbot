@@ -5,6 +5,17 @@ async def prepare_db(pool: Pool):
     async with pool.acquire() as db:
         await db.execute(
             """
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'locale_enum') THEN
+                    CREATE TYPE locale_enum AS ENUM ('ru', 'en');
+                END IF;
+            END
+            $$;
+            """
+        )
+        await db.execute(
+            """
             CREATE TABLE IF NOT EXISTS users (
                 user_id SERIAL PRIMARY KEY,
                 telegram_id BIGINT UNIQUE,
@@ -12,7 +23,9 @@ async def prepare_db(pool: Pool):
                 points FLOAT DEFAULT 10.0,
                 ref_code TEXT UNIQUE,
                 join_date TIMESTAMPTZ DEFAULT NOW(),
-                last_check_in TIMESTAMPTZ DEFAULT NOW() - INTERVAL '1 day'
+                last_check_in TIMESTAMPTZ,
+                language locale_enum DEFAULT 'en',
+                wallet TEXT DEFAULT NULL
             );
         """
         )

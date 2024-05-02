@@ -1,22 +1,21 @@
+from aiogram import Bot
 from aiogram_dialog import DialogManager
 import random
-from aiogram.types import CallbackQuery
+from aiogram.types import User
 
-from aiogram_dialog.api.entities import MediaAttachment
-from aiogram_dialog.widgets.kbd import Button
-import string
-from aiogram.enums import ContentType
-
-from tg_bot.lexicon import getters as lex
+from tg_bot import config
 from tg_bot.services.repository import Repo
 
 
-async def user_info_getter(
-    repo: Repo, dialog_manager: DialogManager, **kwargs
-):
-    user_info = await repo.get_user_info(dialog_manager.event.from_user.id)
-    response_msg = lex.USER_INFO.format(**user_info)
-    return {"user_info": response_msg}
+async def user_info_getter(repo: Repo, event_from_user: User, **kwargs):
+    user_info = await repo.get_user_info(event_from_user.id)
+    return {
+        "telegram_id": user_info["telegram_id"],
+        "username": user_info["username"],
+        "points": round(user_info["points"], 2),
+        "join_date": user_info["join_date"],
+        "referrals": user_info["referral_count"],
+    }
 
 
 async def captcha_getter(dialog_manager: DialogManager, **kwargs):
@@ -29,70 +28,77 @@ async def captcha_getter(dialog_manager: DialogManager, **kwargs):
         ("🟪", "5"),
         ("🟫", "6"),
         ("⬛️", "7"),
-        ("⬜️", "8")
+        ("⬜️", "8"),
     ]
     captcha_key = random.choice(captcha_colors)
     mixed_colors = random.sample(captcha_colors, len(captcha_colors))
     dialog_manager.dialog_data["captcha_key"] = captcha_key[1]
 
-    if dialog_manager.dialog_data.get("captcha_failed", False):
-        msg = lex.CAPTCHA_FAILED.format(captcha_key[0])
-    else:
-        msg = lex.CAPTCHA_START.format(captcha_key[0])
-    return {"colors": mixed_colors, "text": msg}
-
+    return {"colors": mixed_colors, "key_color": captcha_key[0]}
 
 
 async def leaderboard_getter(
-    callback: CallbackQuery, button: Button, dialog_manager: DialogManager
+    repo: Repo, event_from_user: User, dialog_manager: DialogManager, **kwargs
 ):
-    top = await dialog_manager.middleware_data["repo"].fetch_top_referrers()
-    if not top:
-        await callback.answer()
-        return await callback.message.answer(lex.NO_REFERRERS)
-
-    referrers = (
-        f"{index + 1}. {referrer['username']} - {referrer['points']} поинтов"
-        for index, referrer in enumerate(top)
+    top_users = await repo.fetch_top_referrers()
+    user_rank = await repo.get_user_rank(event_from_user.id)
+    top_users_str = (
+        f"{index + 1}. {user['username']} - {round(user['points'], 2)} поинтов"
+        for index, user in enumerate(top_users)
     )
-    response_message = "🏆 Топ рефереров 🏆\n\n" + "\n".join(referrers)
-
-    return await callback.message.answer(response_message)
+    top_referrers = "\n".join(top_users_str)
+    return {"top_referrers": top_referrers, "user_rank": user_rank}
 
 
 async def reflink_getter(
-    callback: CallbackQuery,
-    button: Button,
-    dialog_manager: DialogManager,
+    repo: Repo,
+    bot: Bot,
+    event_from_user: User,
+    **kwargs,
 ):
-    refcode = await dialog_manager.middleware_data["repo"].get_refcode(
-        callback.from_user.id
+    refcode = await repo.get_refcode(event_from_user.id)
+    bot_obj = await bot.get_me()
+    return {"referral_link": f"t.me/{bot_obj.username}?start={refcode}"}
+
+
+async def newsletter_getter(dialog_manager: DialogManager, **kwargs):
+    print(dialog_manager.dialog_data["newsletter_message"])
+    return {"newsletter": dialog_manager.dialog_data["newsletter_message"]}
+
+
+async def required_channels_getter(
+    repo: Repo, dialog_manager: DialogManager, **kwargs
+):
+    channels = await repo.get_required_channels()
+    channels = "\n".join(
+        f"{index + 1}. {channel}" for index, channel in enumerate(channels)
     )
-    return await callback.message.answer(lex.REF_LINK.format(refcode))
+    unsubscribed = dialog_manager.dialog_data.get("unsubscribed", False)
+    return {"channels": channels, "unsubscribed": unsubscribed}
 
 
-async def broadcast_message_getter(dialog_manager: DialogManager, **kwargs):
+async def wallet_getter(repo: Repo, event_from_user: User, **kwargs):
+    wallet = await repo.get_wallet(event_from_user.id)
+    return {"wallet": wallet if wallet else None}
+
+
+async def bot_info_getter(**kwargs):
     return {
-        "broadcast_message": dialog_manager.dialog_data["broadcast_message"]
+        "subscription_reward": config.SUBSCRIPTION_REWARD,
+        "checkin_reward": config.CHECKIN_REWARD,
+        "invitation_reward": config.INVITATION_REWARD,
+        "referrer_part": config.REFERRER_PART_REWARD * 100,
     }
 
 
-async def optinonal_channels_getter(repo: Repo, **kwargs):
+async def quests_info_getter(repo: Repo, **kwargs):
     channels = await repo.get_optional_channels()
-    if not channels:
-        response_msg = lex.IF_NOT_OPTINAL_CHANNELS
-    else:
-        channels_str = "\n".join(
+    if channels:
+        channels = "\n".join(
             f"{index + 1}. {channel}" for index, channel in enumerate(channels)
         )
-        response_msg = lex.IF_OPTIONAL_CHANNELS.format(channels_str)
-    return {"channels": response_msg}
-
-
-async def required_channels_getter(repo: Repo, **kwargs):
-    channels = await repo.get_required_channels()
-    channels_response = "\n".join(
-        f"{index + 1}. {channel}" for index, channel in enumerate(channels)
-    )
-    response_msg = lex.REQUIRE_SUBSCRIBE_MESSAGE.format(channels_response)
-    return {"channels": response_msg}
+    return {
+        "channels": channels,
+        "subscription_reward": config.SUBSCRIPTION_REWARD,
+        "checkin_reward": config.CHECKIN_REWARD,
+    }

@@ -1,13 +1,15 @@
 from datetime import datetime, UTC, timedelta
+from venv import logger
 
 from aiogram import Router
-from aiogram.filters import Command, CommandObject, CommandStart
+from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import DialogManager, StartMode
 from aiogram_dialog.widgets.kbd import Button
+from aiogram_i18n import I18nContext
 
+from tg_bot import config
 from tg_bot.extras import check_subscriptions
-from tg_bot.lexicon import core as lex
 from tg_bot.services.repository import Repo
 from tg_bot.states.states import UserRegistration, MainMenu
 
@@ -29,7 +31,7 @@ async def start(
         ref = await repo.get_by_refcode(command.args) if command.args else None
         data = {"referrer": ref}
         await dialog_manager.start(
-            UserRegistration.check_captcha,
+            UserRegistration.select_language,
             data=data,
             mode=StartMode.RESET_STACK,
         )
@@ -40,47 +42,42 @@ async def try_check_in(
     button: Button,
     dialog_manager: DialogManager,
 ):
-    """
-    When user checks in, they get points and their referrer too.
-    User can check in again in 24h
-    """
-    repo = dialog_manager.middleware_data["repo"]
+    i18n = dialog_manager.middleware_data["i18n_context"]
+    repo: Repo = dialog_manager.middleware_data["repo"]
     user_id = query.from_user.id
+
     last_check = await repo.get_last_check_in(user_id)
     next_check = (
-        last_check + timedelta(days=1) if last_check else datetime.now(UTC)
+        last_check + timedelta(hours=config.CHECKIN_GAP_TIME)
+        if last_check
+        else datetime.now(UTC)
     )
 
     if datetime.now(UTC) >= next_check:
-        channels = await repo.fetch_channels()
-        subscribed = await check_subscriptions(channels, user_id, query.bot)
-        points = len(subscribed)
-        if not points:
-            await query.message.answer(lex.CHECK_IN_UNSUB)
-            return
-        await repo.update_check_in(user_id)
-        await repo.update_points(user_id, points)
+        try:
+            channels = await repo.fetch_channels()
+            subscribed = await check_subscriptions(
+                channels, user_id, query.bot
+            )
+            if not subscribed:
+                await query.message.answer(i18n.user.check_in.unsub())
+                return
+            points = len(subscribed) * config.CHECKIN_REWARD
+            await repo.update_check_in(user_id)
+            await repo.update_points(user_id, points)
 
-        referrer_id = await repo.get_user_referrer(user_id)
-        if referrer_id and points:
-            referrer_points = points * 0.1
-            await repo.update_points(referrer_id, referrer_points)
+            referrer_id = await repo.get_user_referrer(user_id)
+            if referrer_id and points:
+                await repo.update_points(
+                    referrer_id, points * config.REFERRER_PART_REWARD
+                )
 
-        message = (
-            lex.CHECK_IN_REWARD.format(points)
-            if points
-            else lex.CHECK_IN_NOTHING
-        )
+            message = i18n.user.check_in.reward(points=points)
+        except Exception as e:
+            logger.error(f"try_check_in error: {e}")
+            await query.message.answer(i18n.common.error())
     else:
-        message = lex.CHECK_IN_OUT.format(next_check.strftime("%d.%m в %H:%M"))
+        message = i18n.user.check_in.unavailable(
+            date=next_check.strftime("%H:%M %d.%m")
+        )
     await query.message.answer(message)
-
-
-@router.message(Command(commands="info"))
-async def info_cmd(message: Message):
-    return await message.answer(lex.INFO_TEXT)
-
-
-@router.message(Command(commands="support"))
-async def support_cmd(message: Message):
-    return await message.answer(lex.SUPPORT_TEXT)

@@ -1,5 +1,17 @@
 version: "3.8"
 services:
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    
   db:
     image: postgres:14.1-alpine
     restart: always
@@ -8,7 +20,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5434:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

@@ -1,10 +1,17 @@
 from dataclasses import dataclass
 from environs import Env
 
-DEFAULT_REGISTRATION_POINTS: int = 10
-SUBSCRIBE_POINTS_MULTIPLIER: int = 10
-CHECK_IN_POINTS_MULTIPLIER: int = 1
-INVITATION_REWARD: int = 50
+
+env: Env = Env()
+env.read_env()
+
+BOT_ID: int = env("BOT_ID")
+REGISTRATION_REWARD: int = int(env("REGISTRATION_REWARD"))
+SUBSCRIPTION_REWARD: int = int(env("REWARD_FOR_SUBSCRIBE"))
+CHECKIN_REWARD: int = int(env("CHECKIN_REWARD_FOR_EACH_SUB"))
+INVITATION_REWARD: int = int(env("INVITATION_REWARD"))
+REFERRER_PART_REWARD: float = float(env("REFERRER_QUANTITY_REWARD"))
+CHECKIN_GAP_TIME: int = int(env("CHECKIN_GAP_TIME"))
 
 
 @dataclass
@@ -23,22 +30,23 @@ class TgBot:
 
 
 @dataclass
+class RedisConfig:
+    host: str
+    port: int
+
+
+@dataclass
 class Config:
     tg_bot: TgBot
     db: DatabaseConfig
-
-
-env: Env = Env()
-env.read_env()
-
-BOT_ID: int = env("BOT_ID")
+    redis: RedisConfig
 
 
 def load_config():
     return Config(
         tg_bot=TgBot(
             token=env("BOT_TOKEN"),
-            admin_ids=tuple(map(int, env("ADMIN_IDS").split(",")))
+            admin_ids=tuple(map(int, env("ADMIN_IDS").split(","))),
         ),
         db=DatabaseConfig(
             database=env("DB_NAME"),
@@ -47,4 +55,5 @@ def load_config():
             user=env("DB_USER"),
             password=env("DB_PASSWORD"),
         ),
+        redis=RedisConfig(host=env("REDIS_HOST"), port=int(env("REDIS_PORT"))),
     )

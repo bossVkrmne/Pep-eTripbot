@@ -7,8 +7,9 @@ from aiogram.types import Message, TelegramObject
 
 
 class ThrottlingMiddleware(BaseMiddleware):
-    def __init__(self, storage: RedisStorage):
+    def __init__(self, storage: RedisStorage, admin_ids: tuple):
         self.storage = storage
+        self.admin_ids = admin_ids
 
     async def __call__(
         self,
@@ -16,6 +17,8 @@ class ThrottlingMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
+        if event.from_user.id in self.admin_ids:
+            return await handler(event, data)
         user = f"throttled_{event.from_user.id}"
         value = await self.storage.redis.get(user)
         if value:
@@ -35,5 +38,5 @@ class ThrottlingMiddleware(BaseMiddleware):
             await asyncio.sleep(10)
             return await handler(event, data)
         else:
-            await self.storage.redis.set(user, value=value + 1, ex=2)
+            await self.storage.redis.set(user, value=value + 1, ex=1)
             return await handler(event, data)

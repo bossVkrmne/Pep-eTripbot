@@ -47,11 +47,24 @@ class UserGetRepo:
             FROM users u
             LEFT JOIN referrals r ON u.user_id = r.referrer_id
             GROUP BY u.user_id
-            ORDER BY referral_count DESC, u.points DESC
+            ORDER BY u.points DESC
             LIMIT 10
             """
         )
         return referrers
+
+    async def get_user_rank(self, tg_id: int) -> int | None:
+        return await self.db.fetchval(
+            """
+            SELECT rank
+            FROM (
+                SELECT telegram_id, RANK() OVER (ORDER BY points DESC) AS rank
+                FROM users
+            ) as ranking
+            WHERE telegram_id = $1
+            """,
+            tg_id,
+        )
 
     async def get_last_check_in(self, tg_id: int) -> datetime:
         last_check_in = await self.db.fetchval(
@@ -68,7 +81,7 @@ class UserGetRepo:
         users = await self.db.fetch(
             """
             SELECT u.telegram_id, u.username, u.points,
-            COUNT(r.referrer_id) AS referrals_count
+            COUNT(r.referrer_id) AS referrals_count, u.wallet
             
             FROM users u LEFT JOIN referrals r ON u.user_id = r.referrer_id
             GROUP BY u.user_id
@@ -89,3 +102,13 @@ class UserGetRepo:
             tg_id,
         )
         return referrer_id
+
+    async def get_user_locale(self, tg_id: int) -> str | None:
+        return await self.db.fetchval(
+            "SELECT language FROM users WHERE telegram_id = $1", tg_id
+        )
+
+    async def get_wallet(self, tg_id: int) -> str | None:
+        return await self.db.fetchval(
+            "SELECT wallet FROM users WHERE telegram_id = $1", tg_id
+        )
