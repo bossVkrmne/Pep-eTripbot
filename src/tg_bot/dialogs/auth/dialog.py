@@ -1,8 +1,8 @@
-from aiogram.enums import ContentType
+import operator
+
+from aiogram import F
 from aiogram_dialog import Window, Dialog
-from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button
-from aiogram_dialog.widgets.media import DynamicMedia
+from aiogram_dialog.widgets.kbd import Button, Select, Group
 from aiogram_dialog.widgets.text import Const, Format
 
 from tg_bot.dialogs.getters import captcha_getter, required_channels_getter
@@ -11,10 +11,17 @@ from tg_bot.states.states import UserRegistration
 from tg_bot.handlers.auth import check_required_subscriptions
 
 captcha_window = Window(
-    DynamicMedia("captcha_image"),
-    Const("Пройдите капчу для верификации"),
-    Button(Const("Обновить капчу"), id="refresh_captcha"),
-    MessageInput(content_types=[ContentType.TEXT], func=process_captcha),
+    Format("{text}"),
+    Group(
+        Select(
+            Format("{item[0]}"),
+            id="captcha",
+            item_id_getter=operator.itemgetter(1),
+            on_click=process_captcha,
+            items="colors",
+        ),
+        width=3
+    ),
     state=UserRegistration.check_captcha,
     getter=captcha_getter,
 )

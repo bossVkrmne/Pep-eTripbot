@@ -9,19 +9,19 @@ async def prepare_db(pool: Pool):
                 user_id SERIAL PRIMARY KEY,
                 telegram_id BIGINT UNIQUE,
                 username TEXT,
-                points INTEGER DEFAULT 0,
+                points FLOAT DEFAULT 10.0,
                 ref_code TEXT UNIQUE,
-                join_date TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-                last_check_in TIMESTAMP WITHOUT TIME ZONE
+                join_date TIMESTAMPTZ DEFAULT NOW(),
+                last_check_in TIMESTAMPTZ DEFAULT NOW() - INTERVAL '1 day'
             );
         """
         )
         await db.execute(
             """
             CREATE TABLE IF NOT EXISTS referrals (
-                user_id INT,
+                referral_id INT,
                 referrer_id INT,
-                FOREIGN KEY (user_id) REFERENCES users(user_id),
+                FOREIGN KEY (referral_id) REFERENCES users(user_id),
                 FOREIGN KEY (referrer_id) REFERENCES users(user_id)
             );
         """

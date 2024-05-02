@@ -1,7 +1,7 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from typing import Any
+
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, StartMode, ShowMode
-from aiogram_dialog.widgets.input import MessageInput
 from aiogram.utils.payload import encode_payload
 from aiogram_dialog.widgets.kbd import Button
 
@@ -12,17 +12,16 @@ from tg_bot.states.states import UserRegistration, MainMenu
 
 
 async def process_captcha(
-    message: Message,
-    widget: MessageInput,
+    query: CallbackQuery,
+    widget: Any,
     dialog_manager: DialogManager,
+    item_id: str,
 ):
-    if (
-        message.text.upper()
-        == dialog_manager.dialog_data["captcha_code"].upper()
-    ):
+    print(type(item_id), type(dialog_manager.dialog_data["captcha_key"]))
+    if item_id == dialog_manager.dialog_data["captcha_key"]:
         await dialog_manager.switch_to(UserRegistration.check_subscription)
     else:
-        await message.answer(lex.CAPTCHA_FAILED)
+        dialog_manager.dialog_data["captcha_failed"] = True
 
 
 async def check_required_subscriptions(
@@ -68,25 +67,27 @@ async def register_user(query: CallbackQuery, dialog_manager: DialogManager):
     """Register the user in the database"""
     repo = dialog_manager.middleware_data["repo"]
     user_id = query.from_user.id
-    print(user_id)
-    referrer = dialog_manager.start_data["referrer"]
+    referrer = dialog_manager.start_data.get("referrer", None)
 
-    if referrer:
-        await repo.add_referral(
-            tg_id=user_id,
-            username=query.from_user.username,
-            ref_code=encode_payload(str(user_id)),
-            refr_id=referrer["user_id"],
-            refr_points=config.INVITATION_REWARD,
-        )
-        await query.bot.send_message(
-            chat_id=referrer["telegram_id"], text=lex.NOTIFY_REFERRER_REG
-        )
-    else:
+    if not referrer:
         await repo.add_user(
             tg_id=user_id,
             username=query.from_user.username,
+            points=config.DEFAULT_REGISTRATION_POINTS,
             ref_code=encode_payload(str(user_id)),
+        )
+    else:
+        await repo.add_user_referral(
+            tg_id=user_id,
+            username=query.from_user.username,
+            points=config.DEFAULT_REGISTRATION_POINTS,
+            ref_code=encode_payload(str(user_id)),
+            referrer_id=referrer["user_id"],
+            referrer_points=config.INVITATION_REWARD,
+        )
+        await query.bot.send_message(
+            referrer["telegram_id"],
+            lex.NOTIFY_REFERRER_REG.format(config.INVITATION_REWARD),
         )
     await dialog_manager.start(
         MainMenu.menu, mode=StartMode.RESET_STACK, show_mode=ShowMode.SEND

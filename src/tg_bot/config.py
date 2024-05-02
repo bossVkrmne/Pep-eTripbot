@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from environs import Env
 
+DEFAULT_REGISTRATION_POINTS: int = 10
 SUBSCRIBE_POINTS_MULTIPLIER: int = 10
 CHECK_IN_POINTS_MULTIPLIER: int = 1
 INVITATION_REWARD: int = 50
