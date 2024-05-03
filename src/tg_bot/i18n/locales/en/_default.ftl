@@ -37,7 +37,7 @@ user-quests-info =
 
     { $channels }
 
-user-quests-no_quests = There are not quests yet 😬
+user-quests-none = There are not quests yet 😬
 user-quests-already_subscribed = 
     You have already received awards for all these channels ⚠️
     Stay in touch and wait for new quests 😎
@@ -202,6 +202,8 @@ button-user-ref_link = Invite frens 👥
 button-user-leadearboard = Leaderboard 🏆
 button-user-check_in = Check-in ✅
 button-user-quests = Current quest 👾
+
+
 
 button-common-check_subs = Check subscriptions ✅
 button-common-back_to_menu = Back to menu ⬅️
