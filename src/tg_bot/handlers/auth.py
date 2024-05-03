@@ -100,12 +100,15 @@ async def register_user(
     user_id = query.from_user.id
     referrer = dialog_manager.start_data.get("referrer", None)
     locale = i18n.locale
+    username = (
+        query.from_user.first_name if query.from_user.first_name else "Empty"
+    )
 
     if not referrer:
         try:
             await repo.add_user(
                 tg_id=user_id,
-                username=query.from_user.username,
+                username=username,
                 points=config.REGISTRATION_REWARD,
                 ref_code=encode_payload(str(user_id)),
                 language=locale,
@@ -117,7 +120,7 @@ async def register_user(
         try:
             await repo.add_user_referral(
                 tg_id=user_id,
-                username=query.from_user.username,
+                username=username,
                 points=config.REGISTRATION_REWARD,
                 ref_code=encode_payload(str(user_id)),
                 referrer_id=referrer["user_id"],
