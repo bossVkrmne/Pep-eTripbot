@@ -2,6 +2,7 @@ from aiogram import F
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.kbd import Button, SwitchTo
 from aiogram_dialog.widgets.text import Format, Const, Multi
+from aiogram_dialog import ShowMode
 
 from tg_bot.dialogs.getters import (
     quests_info_getter,
@@ -38,14 +39,16 @@ main_menu_window = Window(
 
 quests_window = Window(
     I18nFormat("user-quests-info", when=F["channels"]),
-    I18nFormat("user-quests_none", when=~F["channels"]),
+    I18nFormat("user-quests-none", when=~F["channels"]),
     Button(
         I18nConst("button-common-check_subs"),
         id="check_subs",
         on_click=check_quest_subscriptions,
     ),
     SwitchTo(
-        I18nConst("button-common-back_to_menu"), id="menu", state=MainMenu.menu
+        I18nConst("button-common-back_to_menu"),
+        id="menu",
+        state=MainMenu.menu,
     ),
     state=MainMenu.quests,
     getter=quests_info_getter,
