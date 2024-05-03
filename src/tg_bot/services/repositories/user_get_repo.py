@@ -12,6 +12,9 @@ class UserGetRepo:
         )
         return user_id
 
+    async def get_users_count(self) -> int:
+        return await self.db.fetchval("SELECT COUNT(*) FROM users")
+
     async def get_user_info(self, tg_id: int) -> dict[str, Any] | None:
         row = await self.db.fetchrow(
             """

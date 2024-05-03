@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, SwitchTo, Checkbox, Row
 from aiogram_dialog.widgets.text import Const
 
-from tg_bot.dialogs.getters import newsletter_getter
+from tg_bot.dialogs.getters import newsletter_getter, users_count_getter
 from tg_bot.handlers.admin import (
     add_user_points,
     dump_table,
@@ -17,7 +17,7 @@ from tg_bot.i18n.custom_widgets import I18nConst, I18nFormat
 from tg_bot.states.states import Admin
 
 admin_window = Window(
-    I18nConst("button-admin-menu"),
+    I18nFormat("admin-menu"),
     Row(
         SwitchTo(
             I18nConst("button-admin-add_channel"),
@@ -56,6 +56,7 @@ admin_window = Window(
         on_click=start_main_menu,
     ),
     state=Admin.menu,
+    getter=users_count_getter,
 )
 
 add_channel_window = Window(

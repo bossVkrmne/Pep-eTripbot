@@ -102,3 +102,8 @@ async def quests_info_getter(repo: Repo, **kwargs):
         "subscription_reward": config.SUBSCRIPTION_REWARD,
         "checkin_reward": config.CHECKIN_REWARD,
     }
+
+
+async def users_count_getter(repo: Repo, **kwargs):
+    count = await repo.get_users_count()
+    return {"count": count}

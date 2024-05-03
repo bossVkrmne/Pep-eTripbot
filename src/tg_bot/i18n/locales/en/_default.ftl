@@ -101,6 +101,11 @@ auth-notify_referrer =
 ---------------------------------------------------------------------
                             ADMIN
 ---------------------------------------------------------------------
+admin-menu = 
+    Admin panel 🚀
+
+    Number of users: { $count }
+
 admin-wrong_link_format = Wrong link format ⚠️
 admin-bot_not_admin = The bot is not the admin of this channel ⚠️
 admin-channel_added = The channel successfully added ✅
@@ -187,7 +192,6 @@ common-info =
 ---------------------------------------------------------------------
                             BUTTONS
 ---------------------------------------------------------------------
-button-admin-menu = Admin panel 🚀 
 button-admin-add_channel = Add channel ➕ 
 button-admin-delete_channel = Delete channel ➖
 button-admin-newsletter = Newsletter ✉️ 
