@@ -44,6 +44,7 @@ quests_window = Window(
         I18nConst("button-common-check_subs"),
         id="check_subs",
         on_click=check_quest_subscriptions,
+        when=~F["channels"],
     ),
     SwitchTo(
         I18nConst("button-common-back_to_menu"),
