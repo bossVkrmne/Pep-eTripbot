@@ -21,6 +21,8 @@ from tg_bot.models.role import UserRole
 from tg_bot.services.repository import Repo
 from tg_bot.states.states import Admin
 
+from aiogram.exceptions import TelegramForbiddenError
+
 router = Router()
 
 
@@ -84,8 +86,10 @@ async def send_newsletter(
     users = await dialog_manager.middleware_data["repo"].fetch_users_id()
 
     for user in users:
-        logger.info(user)
-        await message.copy_to(int(user))
+        try:
+            await message.copy_to(int(user))
+        except TelegramForbiddenError:
+            pass
 
     await message.answer(i18n.admin.newsletter_sent())
     await dialog_manager.switch_to(Admin.menu)
