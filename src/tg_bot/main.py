@@ -13,15 +13,19 @@ from aiogram.exceptions import TelegramAPIError
 from tg_bot.config import load_config
 from tg_bot.db import prepare_db
 from tg_bot.extras import set_main_menu
+
 from tg_bot.dialogs.core import dialog as core
 from tg_bot.dialogs.auth import dialog as auth
 from tg_bot.dialogs.admin import dialog as admin
 from tg_bot.dialogs.common import dialog as common
+from tg_bot.dialogs.config import dialog as config_dialog
+
 from tg_bot.handlers.core import router as core_router
 from tg_bot.handlers.admin import router as admin_router
 from tg_bot.handlers.common import router as common_router
-from tg_bot.middleware.db_middleware import DbMiddleware
+from tg_bot.handlers.config import router as config_router
 
+from tg_bot.middleware.db_middleware import DbMiddleware
 from aiogram_dialog import setup_dialogs
 
 from tg_bot.middleware.locale_manager import UserLocaleManager
@@ -67,6 +71,8 @@ async def main() -> None:
     )
     dp.update.outer_middleware(DbMiddleware(pool))
     admin_router.message.middleware(RoleMiddleware(config.tg_bot.admin_ids))
+    config_router.message.middleware(RoleMiddleware(config.tg_bot.admin_ids))
+
     throttling_middleware = ThrottlingMiddleware(
         storage, config.tg_bot.admin_ids
     )
@@ -75,24 +81,17 @@ async def main() -> None:
     i18n_middleware.setup(dp)
 
     dp.startup.register(set_main_menu)
-    # dp.include_routers(
-    #     core_router,
-    #     admin_router,
-    #     common_router,
-    #     auth.dialog,
-    #     core.dialog,
-    #     admin.dialog,
-    #     common.dialog,
-    # )
+
     dp.include_routers(
         core_router,
         auth.dialog,
         admin_router,
         common_router,
-        # auth.dialog,
+        config_router,
         core.dialog,
         admin.dialog,
         common.dialog,
+        config_dialog.dialog,
     )
     setup_dialogs(dp)
 

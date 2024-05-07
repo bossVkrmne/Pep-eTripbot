@@ -60,7 +60,7 @@ user-check_in-reward =
         [one] You has been recieved { $points } point for check-in 🔥
         *[other] You have been recieved { $points } points for check-in 🔥 
     }
-    Next check-in will be available after 24 hours ⌛️
+    Next check-in will be available after { $checkin_gap_hours } hours ⌛️
     
 user-check_in-unavailable = 
     Check-in is not available ⚠️ 
@@ -120,7 +120,10 @@ admin-add_points_error = An error occurred ⚠️
 
 admin-add_channel = Enter the channel link to add ➕
 admin-remove_channel = Enter the channel link to remove ➖
-admin-newsletter = Enter the message for newsletter ✍🏻
+admin-newsletter = 
+    Enter the message for newsletter ✍🏻
+    After entering, your message will automatically be sent to all users ✅
+
 admin-decide_newsletter = 
     Your newsletter message:
 
@@ -153,8 +156,7 @@ common-show_wallet_none =
 
 common-wallet_added =
     The wallet is saved ✅
-    You can always change your wallet address by returning here
-
+    You can always change your wallet address by returning h = 
 
 common-info = 
     Hi 👋🏻
@@ -167,19 +169,19 @@ common-info =
 
     <b>About the economy:</b>
     <b>1.</b> Each subscription to channels in the "Current quests" tab will bring you {
-        $subscription_reward ->
-            [one] { $subscription_reward } point
-            *[other] { $subscription_reward } points
+        $subscription ->
+            [one] { $subscription } point
+            *[other] { $subscription } points
         } one time.
     <b>2.</b> Each subscription to our channels or the channels of our partners will give you {
-         $checkin_reward ->
-            [one] { $checkin_reward } point
-            *[other] { $checkin_reward } points
+         $checkin ->
+            [one] { $checkin } point
+            *[other] { $checkin } points
          } more per check-in.
     <b>3.</b> For inviting a referral you will receive {
-        $invitation_reward ->
-            [one] { $invitation_reward } point
-            *[other] { $invitation_reward } points
+        $invitation ->
+            [one] { $invitation } point
+            *[other] { $invitation } points
          } one time.
     <b>4.</b> For each check-in and subscription of your referral, you will receive a { $referrer_part }% of his reward.
 
@@ -189,6 +191,25 @@ common-info =
     We also do not want to devalue the efforts of those people who do not have the opportunity to invite many friends, but are ready to show activeness and interest in our business 🚀
 
     ❕You can always return to this information by entering the command /info
+
+---------------------------------------------------------------------
+                            CONFIG
+---------------------------------------------------------------------
+config-info = 
+    Reward for default registration: { $registration }
+    
+    Reward for Curren Quests subscriptions: { $subscription }
+
+    Reward for Check-in: { $checkin }
+
+    Reward for invitation: { $invitation }
+
+    Referrer part for referral reward in %: { $referrer_part }%
+
+    Time between check-ins (in hours): { $checkin_gap_hours }
+
+config-reward-change_attr = Введите значение, которое хотите установить: 
+config-reward-changed = The reward successfully changed ✅
 ---------------------------------------------------------------------
                             BUTTONS
 ---------------------------------------------------------------------
@@ -215,3 +236,10 @@ button-common-start_menu = Start the main menu 💻
 
 error-try_again = An error occurred ⚠️
     Try again please
+
+button-config-reward-change_checkin = Change check-in reward
+button-config-reward-change_subscription = Change subscription reward
+button-config-reward-change_invitation = Change invitation reward
+button-config-reward-change_referrer_part = Change referrer part
+button-config-reward-change_registration = Change default registration reward
+button-config-reward-change_checkin_time = Change the time between check-ins

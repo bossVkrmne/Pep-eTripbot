@@ -75,20 +75,19 @@ async def remove_channel(
     await dialog_manager.switch_to(Admin.menu)
 
 
-async def decide_newsletter(
-    callback: CallbackQuery,
-    button: Button,
+async def send_newsletter(
+    message: Message,
+    widget: MessageInput,
     dialog_manager: DialogManager,
 ):
     i18n = dialog_manager.middleware_data["i18n_context"]
-    if button.widget_id == "confirm_newsletter":
-        users = await dialog_manager.middleware_data["repo"].fetch_users_id()
-        newsletter_message = dialog_manager.dialog_data["newsletter_message"]
-        for user in users:
-            await callback.bot.send_message(user, newsletter_message)
+    users = await dialog_manager.middleware_data["repo"].fetch_users_id()
 
-        await callback.message.answer(i18n.admin.newsletter_sent())
+    for user in users:
+        logger.info(user)
+        await message.copy_to(int(user))
 
+    await message.answer(i18n.admin.newsletter_sent())
     await dialog_manager.switch_to(Admin.menu)
 
 

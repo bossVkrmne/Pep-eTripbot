@@ -14,6 +14,21 @@ async def prepare_db(pool: Pool):
             $$;
             """
         )
+
+        await db.execute(
+            """
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'reward_enum') THEN
+                    CREATE TYPE reward_enum AS ENUM (
+                        'registration', 'checkin', 'subscription', 'invitation', 'referrer_part', 'checkin_gap_hours'
+                    );
+                END IF;
+            END
+            $$;
+            """
+        )
+
         await db.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -58,4 +73,29 @@ async def prepare_db(pool: Pool):
             )
             """
         )
+
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS rewards(
+                reward_id SERIAL PRIMARY KEY,
+                reward_type reward_enum UNIQUE,
+                value FLOAT
+            );
+            """
+        )
+
+        count = await db.fetchval("SELECT COUNT(*) FROM rewards;")
+        if count == 0:
+            await db.execute(
+                """
+                INSERT INTO rewards (reward_type, value)
+                VALUES
+                    ('registration', 10),
+                    ('checkin', 5),
+                    ('subscription', 10),
+                    ('invitation', 50),
+                    ('referrer_part', 0.1),
+                    ('checkin_gap_hours', 24);
+                """
+            )
         await db.close()

@@ -5,14 +5,7 @@ from environs import Env
 env: Env = Env()
 env.read_env()
 
-BOT_ID: int = env("BOT_ID")
-REGISTRATION_REWARD: int = int(env("REGISTRATION_REWARD"))
-SUBSCRIPTION_REWARD: int = int(env("REWARD_FOR_SUBSCRIBE"))
-CHECKIN_REWARD: int = int(env("CHECKIN_REWARD_FOR_EACH_SUB"))
-INVITATION_REWARD: int = int(env("INVITATION_REWARD"))
-REFERRER_PART_REWARD: float = float(env("REFERRER_QUANTITY_REWARD"))
-CHECKIN_GAP_TIME: int = int(env("CHECKIN_GAP_TIME"))
-
+BOT_ID: int = int(env("BOT_ID"))
 
 @dataclass
 class DatabaseConfig:

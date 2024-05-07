@@ -1,6 +1,6 @@
 from aiogram import F
 from aiogram.types import ContentType
-from tg_bot.dialogs.getters import bot_info_getter, wallet_getter
+from tg_bot.dialogs.getters import config_getter, wallet_getter
 from tg_bot.dialogs.switches import start_main_menu
 from tg_bot.handlers.common import set_locale, set_wallet
 from tg_bot.i18n.custom_widgets import I18nConst, I18nFormat
@@ -27,7 +27,7 @@ info_window = Window(
         on_click=start_main_menu,
     ),
     state=UserState.view_info,
-    getter=bot_info_getter,
+    getter=config_getter,
 )
 
 add_wallet_window = Window(

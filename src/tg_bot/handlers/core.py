@@ -8,8 +8,8 @@ from aiogram_dialog import DialogManager, StartMode
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_i18n import I18nContext
 
-from tg_bot import config
 from tg_bot.extras import check_subscriptions
+from tg_bot.models.reward import Reward
 from tg_bot.services.repository import Repo
 from tg_bot.states.states import UserRegistration, MainMenu
 
@@ -42,13 +42,14 @@ async def try_check_in(
     button: Button,
     dialog_manager: DialogManager,
 ):
-    i18n = dialog_manager.middleware_data["i18n_context"]
+    i18n: I18nContext = dialog_manager.middleware_data["i18n_context"]
     repo: Repo = dialog_manager.middleware_data["repo"]
     user_id = query.from_user.id
+    checkin_gap_hours = await repo.get_reward_value(Reward.CHECKIN_GAP_HOURS.value)
 
     last_check = await repo.get_last_check_in(user_id)
     next_check = (
-        last_check + timedelta(hours=config.CHECKIN_GAP_TIME)
+        last_check + timedelta(hours=checkin_gap_hours)
         if last_check
         else datetime.now(UTC)
     )
@@ -62,17 +63,21 @@ async def try_check_in(
             if not subscribed:
                 await query.message.answer(i18n.user.check_in.unsub())
                 return
-            points = len(subscribed) * config.CHECKIN_REWARD
+            checkin_reward = await repo.get_reward_value(Reward.CHECKIN.value)
+            points = len(subscribed) * checkin_reward
             await repo.update_check_in(user_id)
             await repo.update_points(user_id, points)
 
             referrer_id = await repo.get_user_referrer(user_id)
             if referrer_id and points:
-                await repo.update_points(
-                    referrer_id, points * config.REFERRER_PART_REWARD
+                referrer_part = await repo.get_reward_value(
+                    Reward.REFERRER_PART.value
                 )
+                await repo.update_points(referrer_id, points * referrer_part)
 
-            message = i18n.user.check_in.reward(points=points)
+            message = i18n.user.check_in.reward(
+                points=points, checkin_gap_hours=checkin_gap_hours
+            )
         except Exception as e:
             logger.error(f"try_check_in error: {e}")
             await query.message.answer(i18n.common.error())

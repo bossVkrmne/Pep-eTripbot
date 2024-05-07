@@ -1,9 +1,10 @@
+import logging
 from aiogram import Bot
 from aiogram_dialog import DialogManager
 import random
 from aiogram.types import User
 
-from tg_bot import config
+from tg_bot.models.reward import Reward
 from tg_bot.services.repository import Repo
 
 
@@ -61,11 +62,6 @@ async def reflink_getter(
     return {"referral_link": f"t.me/{bot_obj.username}?start={refcode}"}
 
 
-async def newsletter_getter(dialog_manager: DialogManager, **kwargs):
-    print(dialog_manager.dialog_data["newsletter_message"])
-    return {"newsletter": dialog_manager.dialog_data["newsletter_message"]}
-
-
 async def required_channels_getter(
     repo: Repo, dialog_manager: DialogManager, **kwargs
 ):
@@ -82,28 +78,33 @@ async def wallet_getter(repo: Repo, event_from_user: User, **kwargs):
     return {"wallet": wallet if wallet else None}
 
 
-async def bot_info_getter(**kwargs):
-    return {
-        "subscription_reward": config.SUBSCRIPTION_REWARD,
-        "checkin_reward": config.CHECKIN_REWARD,
-        "invitation_reward": config.INVITATION_REWARD,
-        "referrer_part": config.REFERRER_PART_REWARD * 100,
-    }
-
-
 async def quests_info_getter(repo: Repo, **kwargs):
     channels = await repo.get_optional_channels()
     if channels:
         channels = "\n".join(
             f"{index + 1}. {channel}" for index, channel in enumerate(channels)
         )
+    sub_reward = await repo.get_reward_value(Reward.SUBSCRIPTION.value)
+    checkin_reward = await repo.get_reward_value(Reward.CHECKIN.value)
     return {
         "channels": channels,
-        "subscription_reward": config.SUBSCRIPTION_REWARD,
-        "checkin_reward": config.CHECKIN_REWARD,
+        "subscription_reward": sub_reward,
+        "checkin_reward": checkin_reward,
     }
 
 
 async def users_count_getter(repo: Repo, **kwargs):
     count = await repo.get_users_count()
     return {"count": count}
+
+async def config_getter(repo: Repo, **kwargs):
+    rewards = await repo.fetch_rewards()
+    result_dict = {}
+    for reward in rewards:
+        if reward["reward_type"] == Reward.REFERRER_PART.value:
+            result_dict[reward["reward_type"]] = reward['value'] * 100
+            continue
+        result_dict[reward["reward_type"]] = reward["value"]
+
+    logging.info(f"Config getter result: {result_dict}")
+    return result_dict

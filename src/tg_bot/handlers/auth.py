@@ -7,8 +7,8 @@ from aiogram.utils.payload import encode_payload
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_i18n import I18nContext
 
-from tg_bot import config
 from tg_bot.extras import check_subscriptions
+from tg_bot.models.reward import Reward
 from tg_bot.services.repository import Repo
 from tg_bot.states.states import UserRegistration, MainMenu, UserState
 
@@ -72,7 +72,8 @@ async def check_quest_subscriptions(
         return
     try:
         subscribed = await check_subscriptions(not_subs, user_id, query.bot)
-        points = len(subscribed) * config.SUBSCRIPTION_REWARD
+        subscription_reward = await repo.get_reward_value(Reward.SUBSCRIPTION.value)
+        points = len(subscribed) * subscription_reward
         if not points:
             await query.message.answer(i18n.user.quests.zero_subsriptions())
             return
@@ -85,8 +86,9 @@ async def check_quest_subscriptions(
             i18n.user.quests.subscription_reward(points=points)
         )
         if referrer_id:
+            referrer_part = await repo.get_reward_value(Reward.REFERRER_PART.value)
             await repo.update_points(
-                referrer_id, points * config.REFERRER_PART_REWARD
+                referrer_id, points * referrer_part
             )
     except Exception as e:
         logger.error(f"check_quest_subscriptions error: {e}")
@@ -103,13 +105,14 @@ async def register_user(
     username = (
         query.from_user.first_name if query.from_user.first_name else "Empty"
     )
+    registration_reward = await repo.get_reward_value(Reward.REGISTRATION.value)
 
     if not referrer:
         try:
             await repo.add_user(
                 tg_id=user_id,
                 username=username,
-                points=config.REGISTRATION_REWARD,
+                points=registration_reward,
                 ref_code=encode_payload(str(user_id)),
                 language=locale,
             )
@@ -117,14 +120,15 @@ async def register_user(
             logger.error(f"register_user single error: {e}")
             await query.message.answer(i18n.error.try_again())
     else:
+        invitation_reward = await repo.get_reward_value(Reward.INVITATION.value)
         try:
             await repo.add_user_referral(
                 tg_id=user_id,
                 username=username,
-                points=config.REGISTRATION_REWARD,
+                points=registration_reward,
                 ref_code=encode_payload(str(user_id)),
                 referrer_id=referrer["user_id"],
-                referrer_points=config.INVITATION_REWARD,
+                referrer_points=invitation_reward,
                 language=locale,
             )
             referrer_locale = await repo.get_user_locale(
@@ -134,7 +138,7 @@ async def register_user(
             await query.bot.send_message(
                 chat_id=referrer["telegram_id"],
                 text=i18n.auth.notify_referrer(
-                    points=config.INVITATION_REWARD
+                    points=invitation_reward
                 ),
             )
             i18n.locale = locale

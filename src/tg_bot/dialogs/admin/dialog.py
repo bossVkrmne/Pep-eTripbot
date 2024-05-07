@@ -4,15 +4,15 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, SwitchTo, Checkbox, Row
 from aiogram_dialog.widgets.text import Const
 
-from tg_bot.dialogs.getters import newsletter_getter, users_count_getter
+from tg_bot.dialogs.getters import users_count_getter
 from tg_bot.handlers.admin import (
     add_user_points,
     dump_table,
     add_channel,
     remove_channel,
-    decide_newsletter,
+    send_newsletter,
 )
-from tg_bot.dialogs.switches import to_newsletter_decide, start_main_menu
+from tg_bot.dialogs.switches import start_main_menu
 from tg_bot.i18n.custom_widgets import I18nConst, I18nFormat
 from tg_bot.states.states import Admin
 
@@ -61,7 +61,7 @@ admin_window = Window(
 
 add_channel_window = Window(
     I18nConst("admin-add_channel"),
-    MessageInput(content_types=[ContentType.TEXT], func=add_channel),
+    MessageInput(content_types=ContentType.ANY, func=add_channel),
     Checkbox(
         I18nConst("button-admin-required_channel"),
         I18nConst("button-admin-optional_channel"),
@@ -77,26 +77,15 @@ remove_channel_window = Window(
     state=Admin.remove_channel,
 )
 
-start_broadcast_window = Window(
+newsletter_window = Window(
     I18nConst("admin-newsletter"),
-    MessageInput(func=to_newsletter_decide),
+    MessageInput(content_types=[ContentType.ANY], func=send_newsletter),
+    SwitchTo(
+        I18nConst("button-common-back_to_menu"),
+        id="back_to_menu",
+        state=Admin.menu,
+    ),
     state=Admin.start_newsletter,
-)
-
-decide_broadcast_window = Window(
-    I18nFormat("admin-decide_newsletter"),
-    Button(
-        I18nConst("button-admin-confirm_newsletter"),
-        id="confirm_newsletter",
-        on_click=decide_newsletter,
-    ),
-    Button(
-        I18nConst("button-admin-cancel_newsletter"),
-        id="cancel_newsletter",
-        on_click=decide_newsletter,
-    ),
-    state=Admin.confirm_newsletter,
-    getter=newsletter_getter,
 )
 
 add_user_points_window = Window(
@@ -109,7 +98,6 @@ dialog = Dialog(
     admin_window,
     add_channel_window,
     remove_channel_window,
-    start_broadcast_window,
-    decide_broadcast_window,
+    newsletter_window,
     add_user_points_window,
 )
