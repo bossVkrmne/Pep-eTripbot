@@ -106,5 +106,4 @@ async def config_getter(repo: Repo, **kwargs):
             continue
         result_dict[reward["reward_type"]] = reward["value"]
 
-    logging.info(f"Config getter result: {result_dict}")
     return result_dict

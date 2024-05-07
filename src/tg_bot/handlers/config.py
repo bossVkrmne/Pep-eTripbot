@@ -21,7 +21,6 @@ async def change_config(
     message: Message, dialog_manager: DialogManager, role: UserRole
 ):
     if role == UserRole.ADMIN:
-        logger.info(role == UserRole.ADMIN)
         await dialog_manager.start(Config.menu, mode=StartMode.RESET_STACK)
     else:
         await dialog_manager.show()
