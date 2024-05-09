@@ -28,6 +28,7 @@ class Admin(StatesGroup):
     start_newsletter = State()
     confirm_newsletter = State()
     add_user_points = State()
+    remove_user_points = State()
 
 
 class Config(StatesGroup):

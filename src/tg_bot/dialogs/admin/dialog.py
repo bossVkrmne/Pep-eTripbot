@@ -10,6 +10,7 @@ from tg_bot.handlers.admin import (
     dump_table,
     add_channel,
     remove_channel,
+    remove_user_points,
     send_newsletter,
 )
 from tg_bot.dialogs.switches import start_main_menu
@@ -45,10 +46,17 @@ admin_window = Window(
             on_click=dump_table,
         ),
     ),
-    SwitchTo(
-        I18nConst("button-admin-add_user_points"),
-        id="add_user_points",
-        state=Admin.add_user_points,
+    Row(
+        SwitchTo(
+            I18nConst("button-admin-add_user_points"),
+            id="add_user_points",
+            state=Admin.add_user_points,
+        ),
+        SwitchTo(
+            I18nConst("button-admin-remove_user_points"),
+            id="remove_user_points",
+            state=Admin.remove_user_points,
+        ),
     ),
     Button(
         I18nConst("button-common-back_to_menu"),
@@ -94,10 +102,17 @@ add_user_points_window = Window(
     state=Admin.add_user_points,
 )
 
+remove_user_points_window = Window(
+    I18nConst("admin-enter_user_points"),
+    MessageInput(content_types=[ContentType.TEXT], func=remove_user_points),
+    state=Admin.remove_user_points,
+)
+
 dialog = Dialog(
     admin_window,
     add_channel_window,
     remove_channel_window,
     newsletter_window,
     add_user_points_window,
+    remove_user_points_window,
 )

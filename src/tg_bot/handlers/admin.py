@@ -103,14 +103,32 @@ async def add_user_points(
     try:
         user_id, points = map(int, message.text.split("="))
         if not await repo.get_by_telegram_id(user_id):
-            await message.answer(i18n.admin.add_points_error())
+            await message.answer(i18n.admin.points_error())
             return
         await repo.update_points(user_id, points)
         await message.answer(i18n.admin.points_added())
         await dialog_manager.switch_to(Admin.menu)
     except Exception as e:
         logger.error(f"add_user_points error: {e}")
-        await message.answer(i18n.admin.add_points_error())
+        await message.answer(i18n.admin.points_error())
+
+
+async def remove_user_points(
+    message: Message, widget: MessageInput, dialog_manager: DialogManager
+):
+    i18n: I18nContext = dialog_manager.middleware_data["i18n_context"]
+    repo: Repo = dialog_manager.middleware_data["repo"]
+    try:
+        user_id, points = map(int, message.text.split("="))
+        if not await repo.get_by_telegram_id(user_id):
+            await message.answer(i18n.admin.points_error())
+            return
+        await repo.remove_points(user_id, points)
+        await message.answer(i18n.admin.points_removed())
+        await dialog_manager.switch_to(Admin.menu)
+    except Exception as e:
+        logger.error(f"remove_user_points error: {e}")
+        await message.answer(i18n.admin.points_error())
 
 
 async def dump_table(

@@ -115,7 +115,8 @@ admin-channel_already_removed = The channel already removed from the system ⚠�
 admin-newsletter_sent = The message was sent successfully ✅
 admin-enter_user_points = Enter <b>telegram_id</b>=<b>points</b>:
 admin-points_added = Points successfully added ✅
-admin-add_points_error = An error occurred ⚠️
+admin-points_removed = Points successfully removed ✅
+admin-points_error = An error occurred ⚠️
     Check the data is correct and try again
 
 admin-add_channel = Enter the channel link to add ➕
@@ -221,7 +222,8 @@ button-admin-cancel_newsletter = No 👎🏻
 button-admin-required_channel = Required channel ✅
 button-admin-optional_channel = Optional channel ✅
 button-admin-dump_table = Download table 📑
-button-admin-add_user_points = Add points to user 💰
+button-admin-add_user_points = Add points ➕💰
+button-admin-remove_user_points = Remove points ➖💰
 
 button-user-ref_link = Invite frens 👥
 button-user-leadearboard = Leaderboard 🏆

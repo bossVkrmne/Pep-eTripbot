@@ -26,6 +26,17 @@ class UserUpdateRepo:
             tg_id,
         )
 
+    async def remove_points(self, tg_id: int, points: int) -> None:
+        await self.db.execute(
+            """
+            UPDATE users
+            SET points = points - $1
+            WHERE telegram_id = $2
+            """,
+            points,
+            tg_id,
+        )
+
     async def set_user_locale(
         self, tg_id: int, locale: Literal["ru", "en"]
     ) -> None:
