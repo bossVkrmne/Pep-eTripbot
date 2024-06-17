@@ -40,10 +40,10 @@ admin_window = Window(
             state=Admin.start_newsletter,
             show_mode=ShowMode.AUTO,
         ),
-        Button(
+        SwitchTo(
             I18nConst("button-admin-dump_table"),
             id="dump_table",
-            on_click=dump_table,
+            state=Admin.dump_table,
         ),
     ),
     Row(
@@ -108,6 +108,12 @@ remove_user_points_window = Window(
     state=Admin.remove_user_points,
 )
 
+dump_table = Window(
+    I18nConst("admin-dump_table"),
+    MessageInput(content_types=[ContentType.TEXT], func=dump_table),
+    state=Admin.dump_table
+)
+
 dialog = Dialog(
     admin_window,
     add_channel_window,
@@ -115,4 +121,5 @@ dialog = Dialog(
     newsletter_window,
     add_user_points_window,
     remove_user_points_window,
+    dump_table
 )

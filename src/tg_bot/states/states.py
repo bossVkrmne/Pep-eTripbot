@@ -29,7 +29,7 @@ class Admin(StatesGroup):
     confirm_newsletter = State()
     add_user_points = State()
     remove_user_points = State()
-
+    dump_table = State()
 
 class Config(StatesGroup):
     menu = State()

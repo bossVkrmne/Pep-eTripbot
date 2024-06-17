@@ -11,6 +11,11 @@ services:
     depends_on:
       - db
       - redis
+    logging:
+      driver: json-file
+      options:
+        max_size: "10m"
+        max_file: 3
     
   db:
     image: postgres:14.1-alpine

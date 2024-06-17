@@ -132,17 +132,26 @@ async def remove_user_points(
 
 
 async def dump_table(
-    query: CallbackQuery, button: Button, dialog_manager: DialogManager
+    message: Message, widget: MessageInput, dialog_manager: DialogManager
 ):
-    users = await dialog_manager.middleware_data["repo"].fetch_users_data()
+    try:
+        users = await dialog_manager.middleware_data["repo"].fetch_top_referrers_for_last_n_days(int(message.text))
+    except Exception as e:
+        logger.info(e)
+        if message.text == "all":
+            users = await dialog_manager.middleware_data["repo"].fetch_users_data()
+        else:
+            await message.answer('Неверный формат, разрешены только числа или "все"')
+            return
+
     output = StringIO()
     writer = csv.writer(output)
     writer.writerow(
         [
             "Телеграм айди",
             "Имя пользователя",
-            "Поинты",
             "Количество рефералов",
+            "Поинты"
             "Кошелёк",
         ]
     )
@@ -151,8 +160,8 @@ async def dump_table(
             [
                 user["telegram_id"],
                 user["username"],
-                user["points"],
                 user["referrals_count"],
+                user["points"],
                 user["wallet"],
             ]
         )
@@ -160,5 +169,5 @@ async def dump_table(
     bytes_output = BytesIO(output.read().encode("utf-8"))
 
     document = BufferedInputFile(bytes_output.read(), "users.csv")
-    await query.message.answer_document(document=document)
+    await message.answer_document(document=document)
     await dialog_manager.switch_to(Admin.menu)

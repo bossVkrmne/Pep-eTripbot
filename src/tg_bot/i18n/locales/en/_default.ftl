@@ -131,6 +131,11 @@ admin-decide_newsletter =
     "{ $newsletter }"
 
     Do you confirm this message?
+
+admin-dump_table = 
+    Enter a number: the last N days for which to take statistics you want
+
+    Enter "all" to get data for all time.
 ---------------------------------------------------------------------
                             COMMON
 ---------------------------------------------------------------------

@@ -89,7 +89,7 @@ class UserGetRepo:
             FROM users u LEFT JOIN referrals r ON u.user_id = r.referrer_id
             GROUP BY u.user_id
             ORDER BY referrals_count DESC
-        """
+            """
         )
         return users
 
@@ -115,3 +115,35 @@ class UserGetRepo:
         return await self.db.fetchval(
             "SELECT wallet FROM users WHERE telegram_id = $1", tg_id
         )
+
+    async def fetch_top_referrers_for_last_n_days(self, days: int):
+        users = await self.db.fetch(
+            f"""
+            WITH recent_referrals AS (
+                SELECT
+                    referrer_id,
+                    COUNT(*) AS referrals_count
+                FROM
+                    referrals r
+                JOIN
+                    users u ON r.referral_id = u.user_id
+                WHERE
+                    u.join_date >= NOW() - INTERVAL '{days} days'
+                GROUP BY
+                    referrer_id
+            )
+            SELECT
+                u.username,
+                u.telegram_id,
+                rr.referrals_count,
+                u.points,
+                u.wallet
+            FROM
+                recent_referrals rr
+            JOIN
+                users u ON rr.referrer_id = u.user_id
+            ORDER BY
+                rr.referrals_count DESC;
+            """
+        )
+        return users
