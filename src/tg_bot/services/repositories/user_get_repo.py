@@ -43,14 +43,12 @@ class UserGetRepo:
         )
         return dict(ids) if ids else None
 
-    async def fetch_top_referrers(self) -> list[dict[str, Any]] | None:
+    async def get_top_users(self) -> list[dict[str, Any]] | None:
         referrers = await self.db.fetch(
             """
-            SELECT u.username, u.points, COUNT(r.referral_id) AS referral_count
+            SELECT username, points
             FROM users u
-            LEFT JOIN referrals r ON u.user_id = r.referrer_id
-            GROUP BY u.user_id
-            ORDER BY u.points DESC
+            ORDER BY points DESC
             LIMIT 10
             """
         )
@@ -88,7 +86,7 @@ class UserGetRepo:
             
             FROM users u LEFT JOIN referrals r ON u.user_id = r.referrer_id
             GROUP BY u.user_id
-            ORDER BY referrals_count DESC
+            ORDER BY u.points DESC, referrals_count DESC
             """
         )
         return users
@@ -143,7 +141,43 @@ class UserGetRepo:
             JOIN
                 users u ON rr.referrer_id = u.user_id
             ORDER BY
-                rr.referrals_count DESC;
+                rr.referrals_count DESC
+            LIMIT 20
             """
+        )
+        return users
+    
+    
+    async def fetch_top_raffle_referrers(self, start_date, end_date):
+        users = await self.db.fetch(
+            f"""
+            WITH recent_referrals AS (
+                SELECT
+                    referrer_id,
+                    COUNT(*) AS referrals_count
+                FROM
+                    referrals r
+                JOIN
+                    users u ON r.referral_id = u.user_id
+                WHERE
+                    u.join_date >= $1 AND u.join_date <= $2
+                GROUP BY
+                    referrer_id
+            )
+            SELECT
+                u.username,
+                u.telegram_id,
+                rr.referrals_count,
+                u.points,
+                u.wallet
+            FROM
+                recent_referrals rr
+            JOIN
+                users u ON rr.referrer_id = u.user_id
+            ORDER BY
+                rr.referrals_count DESC
+            LIMIT 20
+            """,
+            start_date, end_date
         )
         return users

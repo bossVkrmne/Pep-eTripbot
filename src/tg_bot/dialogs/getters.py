@@ -1,4 +1,4 @@
-import logging
+from datetime import date, datetime
 from aiogram import Bot
 from aiogram_dialog import DialogManager
 import random
@@ -6,6 +6,7 @@ from aiogram.types import User
 
 from tg_bot.models.reward import Reward
 from tg_bot.services.repository import Repo
+from tg_bot.config import RAFFLE_START_STR, RAFFLE_START_DATE, RAFFLE_END_STR, RAFFLE_END_DATE
 
 
 async def user_info_getter(repo: Repo, event_from_user: User, **kwargs):
@@ -39,16 +40,50 @@ async def captcha_getter(dialog_manager: DialogManager, **kwargs):
 
 
 async def leaderboard_getter(
-    repo: Repo, event_from_user: User, dialog_manager: DialogManager, **kwargs
+    repo: Repo, event_from_user: User, **kwargs
 ):
-    top_users = await repo.fetch_top_referrers()
+    locale = await repo.get_user_locale(event_from_user.id)
+    if locale == "ru":
+        points = "поинтов"
+    else:
+        points = "points"
+    top_users_dict = await repo.get_top_users()
     user_rank = await repo.get_user_rank(event_from_user.id)
-    top_users_str = (
-        f"{index + 1}. {user['username']} - {round(user['points'], 2)} поинтов"
-        for index, user in enumerate(top_users)
+    top_users_collection = (
+        f"{index + 1}. {user['username']} - {round(user['points'], 2)} {points}"
+        for index, user in enumerate(top_users_dict)
     )
-    top_referrers = "\n".join(top_users_str)
-    return {"top_referrers": top_referrers, "user_rank": user_rank}
+    top_users_str = "\n".join(top_users_collection)
+    
+    return {
+        "top_users": top_users_str,
+        "user_rank": user_rank,
+        "raffle_not_ended": date.today() <= RAFFLE_END_DATE,
+    }
+
+
+async def raffle_top_getter(
+    repo: Repo, event_from_user: User, **kwargs
+):
+    locale = await repo.get_user_locale(event_from_user.id)
+    if locale == "ru":
+        referrals = "рефералов"
+    else:
+        referrals = "referrals"
+    top_referrers_dict = await repo.fetch_top_raffle_referrers(
+        start_date=RAFFLE_START_DATE, end_date=RAFFLE_END_DATE
+    )
+    top_referrers_collection = (
+        f"{index + 1}. {user['username']} - {user['referrals_count']} {referrals}"
+        for index, user in enumerate(top_referrers_dict)
+    )
+    top_referrers_str = "\n".join(top_referrers_collection)
+    return {
+        "top_referrers": top_referrers_str,
+        "start_date": RAFFLE_START_STR,
+        "end_date": RAFFLE_END_STR,
+    }
+
 
 
 async def reflink_getter(
@@ -96,6 +131,7 @@ async def quests_info_getter(repo: Repo, **kwargs):
 async def users_count_getter(repo: Repo, **kwargs):
     count = await repo.get_users_count()
     return {"count": count}
+
 
 async def config_getter(repo: Repo, **kwargs):
     rewards = await repo.fetch_rewards()

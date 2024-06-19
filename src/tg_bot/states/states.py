@@ -5,6 +5,7 @@ class MainMenu(StatesGroup):
     menu = State()
     quests = State()
     leaderboard = State()
+    raffle_top = State()
     referral_link = State()
 
 

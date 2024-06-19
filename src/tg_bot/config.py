@@ -1,11 +1,17 @@
 from dataclasses import dataclass
 from environs import Env
+from datetime import datetime
 
 
 env: Env = Env()
 env.read_env()
 
-BOT_ID: int = int(env("BOT_ID"))
+BOT_ID = int(env("BOT_ID"))
+
+RAFFLE_START_STR = env("RAFFLE_START")
+RAFFLE_END_STR = env("RAFFLE_END")
+RAFFLE_START_DATE = datetime.strptime(RAFFLE_START_STR, "%d.%m.%Y").date()
+RAFFLE_END_DATE = datetime.strptime(RAFFLE_END_STR, "%d.%m.%Y").date()
 
 @dataclass
 class DatabaseConfig:

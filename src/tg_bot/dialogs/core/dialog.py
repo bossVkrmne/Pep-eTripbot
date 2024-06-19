@@ -1,19 +1,21 @@
+from datetime import date
 from aiogram import F
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.kbd import Button, SwitchTo
-from aiogram_dialog.widgets.text import Format, Const, Multi
-from aiogram_dialog import ShowMode
+from aiogram_dialog.widgets.text import Multi
 
 from tg_bot.dialogs.getters import (
     quests_info_getter,
     reflink_getter,
     leaderboard_getter,
     user_info_getter,
+    raffle_top_getter
 )
 from tg_bot.handlers.auth import check_quest_subscriptions
 from tg_bot.handlers.core import try_check_in
 from tg_bot.i18n.custom_widgets import I18nConst, I18nFormat
 from tg_bot.states.states import MainMenu
+from tg_bot.config import RAFFLE_END_DATE
 
 main_menu_window = Window(
     I18nFormat("user-start_info"),
@@ -62,10 +64,25 @@ leadearboard_window = Window(
         sep="\n\n",
     ),
     SwitchTo(
+        I18nConst("button-user-raffle_top"),
+        id="raffle_top",
+        state=MainMenu.raffle_top,
+        when=F["raffle_not_ended"],
+    ),
+    SwitchTo(
         I18nConst("button-common-back_to_menu"), id="menu", state=MainMenu.menu
     ),
     state=MainMenu.leaderboard,
     getter=leaderboard_getter,
+)
+
+raffle_top_window = Window(
+    I18nFormat("user-raffle_top"),
+    SwitchTo(
+        I18nConst("button-common-back_to_menu"), id="menu", state = MainMenu.menu
+    ),
+    state=MainMenu.raffle_top,
+    getter=raffle_top_getter
 )
 
 referral_link_window = Window(
@@ -78,5 +95,9 @@ referral_link_window = Window(
 )
 
 dialog = Dialog(
-    main_menu_window, quests_window, leadearboard_window, referral_link_window
+    main_menu_window,
+    quests_window,
+    leadearboard_window,
+    raffle_top_window,
+    referral_link_window
 )

@@ -17,6 +17,13 @@ user-referral_link =
 user-leaderboard = 
     🏆 Top active users 🏆
     
+    { $top_users }
+
+user-raffle_top = 
+    🏆 Top referrers of the week 🏆
+
+    { $start_date } - { $end_date }
+
     { $top_referrers }
 
 user-user_rank = Your position in the ranking: { $user_rank }
@@ -234,6 +241,7 @@ button-user-ref_link = Invite frens 👥
 button-user-leadearboard = Leaderboard 🏆
 button-user-check_in = Check-in ✅
 button-user-quests = Current quest 👾
+button-user-raffle_top = Weekly top (Raffle)
 
 
 

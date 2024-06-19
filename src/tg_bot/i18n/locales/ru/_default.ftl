@@ -17,6 +17,13 @@ user-referral_link =
 user-leaderboard = 
     🏆 Топ активных пользователей 🏆
     
+    { $top_users }
+
+user-raffle_top = 
+    🏆 Топ рефереров за неделю 🏆
+    
+    { $start_date } - { $end_date }
+
     { $top_referrers }
 
 user-user_rank = Твоя позиция в рейтинге: { $user_rank }
@@ -245,6 +252,7 @@ button-user-ref_link = Пригласить друзей 👥
 button-user-leadearboard = Таблица лидеров 🏆
 button-user-check_in = Чек-ин ✅
 button-user-quests = Актуальные квесты 👾
+button-user-raffle_top = Недельный топ (Розыгрыш)
 
 button-common-check_subs = Проверить подписки ✅
 button-common-back_to_menu = ⬅️ Вернуться в меню 
