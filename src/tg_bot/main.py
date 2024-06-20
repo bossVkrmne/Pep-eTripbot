@@ -106,8 +106,10 @@ async def main() -> None:
 def cli():
     try:
         asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit, TelegramAPIError):
+    except (KeyboardInterrupt, SystemExit):
         logger.error("Bot stopped!")
+    except TelegramAPIError as e:
+        logger.error(f"API_ERROR: {e}")
 
 
 if __name__ == "__main__":
