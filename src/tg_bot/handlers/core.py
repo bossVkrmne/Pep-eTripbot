@@ -80,7 +80,6 @@ async def try_check_in(
             )
         except Exception as e:
             logger.error(f"try_check_in error: {e}")
-            await query.message.answer(i18n.common.error())
     else:
         message = i18n.user.check_in.unavailable(
             date=next_check.strftime("%H:%M %d.%m")

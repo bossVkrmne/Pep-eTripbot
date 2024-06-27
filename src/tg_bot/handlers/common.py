@@ -38,7 +38,6 @@ async def set_locale(
         await query.message.answer(i18n.common.locale_changed())
     except Exception as e:
         logger.error(f"set_locale error: {e}")
-        await query.message.answer(i18n.common.error())
     await dialog_manager.done()
 
 
@@ -60,7 +59,6 @@ async def set_wallet(
         await message.answer(i18n.common.wallet_added())
     except Exception as e:
         logger.error(f"set_wallet error: {e}")
-        await message.answer(i18n.common.error())
     await dialog_manager.done()
 
 
