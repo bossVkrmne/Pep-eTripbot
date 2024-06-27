@@ -245,7 +245,7 @@ button-user-raffle_top = Weekly top (Raffle)
 
 
 
-button-common-check_subs = Check subscriptions ✅
+button-common-check_subs = I have subscribed to all channels ✅
 button-common-back_to_menu = Back to menu ⬅️
 button-common-start_menu = Start the main menu 💻
 

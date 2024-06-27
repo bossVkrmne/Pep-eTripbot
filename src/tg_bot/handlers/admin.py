@@ -40,25 +40,15 @@ async def add_channel(
     message: Message, widget: MessageInput, dialog_manager: DialogManager
 ):
     i18n = dialog_manager.middleware_data["i18n_context"]
-    pattern = r"^https://t\.me/(?P<username>[a-zA-Z0-9_]{5,32})$"
-    match = re.match(pattern, message.text)
-    if not match:
-        await message.answer(i18n.admin.wrong_link_format())
-    else:
-        channel = "@" + match.group("username")
-        member = await message.bot.get_chat_member(channel, config.BOT_ID)
-        if member.status != "administrator":
-            await message.answer(i18n.admin.bot_not_admin())
-        else:
-            checkbox = dialog_manager.find("check_required_channel")
-            required = checkbox.is_checked()
-            try:
-                await dialog_manager.middleware_data["repo"].add_channel(
-                    message.text, required
-                )
-                await message.answer(i18n.admin.channel_added())
-            except UniqueViolationError:
-                await message.answer(i18n.admin.channel_already_added())
+    checkbox = dialog_manager.find("check_required_channel")
+    required = checkbox.is_checked()
+    try:
+        await dialog_manager.middleware_data["repo"].add_channel(
+            message.text, required
+        )
+        await message.answer(i18n.admin.channel_added())
+    except UniqueViolationError:
+        await message.answer(i18n.admin.channel_already_added())
     await dialog_manager.switch_to(Admin.menu)
 
 

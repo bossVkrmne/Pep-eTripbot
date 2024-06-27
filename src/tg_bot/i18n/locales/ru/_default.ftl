@@ -254,7 +254,7 @@ button-user-check_in = Чек-ин ✅
 button-user-quests = Актуальные квесты 👾
 button-user-raffle_top = Недельный топ (Розыгрыш)
 
-button-common-check_subs = Проверить подписки ✅
+button-common-check_subs = Я подписался на все каналы ✅
 button-common-back_to_menu = ⬅️ Вернуться в меню 
 button-common-start_menu = Перейти к главному меню 💻
 

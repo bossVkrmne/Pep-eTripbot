@@ -71,15 +71,16 @@ async def check_quest_subscriptions(
         await query.message.answer(i18n.user.quests.already_subscribed())
         return
     try:
-        subscribed = await check_subscriptions(not_subs, user_id, query.bot)
-        subscription_reward = await repo.get_reward_value(Reward.SUBSCRIPTION.value)
-        points = len(subscribed) * subscription_reward
-        if not points:
-            await query.message.answer(i18n.user.quests.zero_subsriptions())
-            return
+        # subscribed = await check_subscriptions(not_subs, user_id, query.bot)
+        # subscription_reward = await repo.get_reward_value(Reward.SUBSCRIPTION.value)
+        # points = len(subscribed) * subscription_reward
+        # if not points:
+        #     await query.message.answer(i18n.user.quests.zero_subsriptions())
+        #     return
 
-        for url in subscribed:
+        for url in not_subs:
             await repo.add_user_channel(url, query.from_user.id)
+        points = len(not_subs)
 
         await repo.update_points(query.from_user.id, points)
         await query.message.answer(
